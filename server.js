@@ -5,7 +5,7 @@ const connection = mysql.createConnection({
     host: '172.29.18.118',
     user: 'assesNodeServerDemo',
     password: 'assesNodeServerDemo',
-    database: 'bddTest',
+    database: 'projet_seances_loic',
 });
 
 connection.connect((err => {
@@ -18,8 +18,13 @@ connection.connect((err => {
 
 const app = express();
 
-app.use(express.static('public'));
+app.use(express.static('public'));  
 app.use(express.json());
+
+// Route pour la page d'accueil
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
 
 // ==========================================
 // ROUTES UTILISATEUR
@@ -128,7 +133,7 @@ app.post('/save-session', (req, res) => {
     
     // Vérifier si une séance existe déjà pour ce jour et cet utilisateur
     connection.query(
-        'SELECT * FROM weekly_sessions WHERE userId = ? AND day = ?',
+        'SELECT * FROM seances WHERE userId = ? AND day = ?',
         [userId, day],
         (err, results) => {
             if (err) {
@@ -140,7 +145,7 @@ app.post('/save-session', (req, res) => {
             if (results.length > 0) {
                 // Mettre à jour la séance existante
                 connection.query(
-                    'UPDATE weekly_sessions SET exercises = ?, savedDate = ? WHERE userId = ? AND day = ?',
+                    'UPDATE seances SET exercises = ?, savedDate = ? WHERE userId = ? AND day = ?',
                     [exercisesJson, savedDate, userId, day],
                     (err, results) => {
                         if (err) {
@@ -155,7 +160,7 @@ app.post('/save-session', (req, res) => {
             } else {
                 // Insérer une nouvelle séance
                 connection.query(
-                    'INSERT INTO weekly_sessions (userId, day, exercises, savedDate) VALUES (?, ?, ?, ?)',
+                    'INSERT INTO seances (userId, day, exercises, savedDate) VALUES (?, ?, ?, ?)',
                     [userId, day, exercisesJson, savedDate],
                     (err, results) => {
                         if (err) {
@@ -177,7 +182,7 @@ app.get('/weekly-plan/:userId', (req, res) => {
     const userId = req.params.userId;
     
     connection.query(
-        'SELECT * FROM weekly_sessions WHERE userId = ?',
+        'SELECT * FROM seances WHERE userId = ?',
         [userId],
         (err, results) => {
             if (err) {
@@ -205,7 +210,7 @@ app.get('/session/:userId/:day', (req, res) => {
     const { userId, day } = req.params;
     
     connection.query(
-        'SELECT * FROM weekly_sessions WHERE userId = ? AND day = ?',
+        'SELECT * FROM seances WHERE userId = ? AND day = ?',
         [userId, day],
         (err, results) => {
             if (err) {
@@ -234,7 +239,7 @@ app.delete('/delete-session/:userId/:day', (req, res) => {
     const { userId, day } = req.params;
     
     connection.query(
-        'DELETE FROM weekly_sessions WHERE userId = ? AND day = ?',
+        'DELETE FROM seances WHERE userId = ? AND day = ?',
         [userId, day],
         (err, results) => {
             if (err) {
@@ -259,7 +264,7 @@ app.delete('/delete-all-sessions/:userId', (req, res) => {
     const userId = req.params.userId;
     
     connection.query(
-        'DELETE FROM weekly_sessions WHERE userId = ?',
+        'DELETE FROM seances WHERE userId = ?',
         [userId],
         (err, results) => {
             if (err) {
@@ -274,6 +279,11 @@ app.delete('/delete-all-sessions/:userId', (req, res) => {
     );
 });
 
+
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 // ==========================================
 // DÉMARRAGE DU SERVEUR
 // ==========================================

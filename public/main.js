@@ -33,6 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Vérifier si l'utilisateur est déjà connecté (DÉPLACÉ ICI)
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+        document.getElementById('connectedUser').textContent = localStorage.getItem('userLogin') || 'Connecté';
+        showWeeklyPlanningIfConnected();
+    }
+    
     // Initialiser le planning au chargement
     initWeeklyPlanning();
     

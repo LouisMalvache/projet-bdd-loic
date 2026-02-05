@@ -21,18 +21,18 @@
 </head>
 
 <body>
-    <span id="connectedUser">Aucun</span>
-
+      <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+    <div class="container">
+      
+      </div>
     <!-- Bouton pour afficher/masquer la section de connexion -->
     <div style="text-align: center; margin: 20px 0;">
         <button id="toggleLoginButton" class="btn-toggle-login">
             <i class="fas fa-user"></i> Connexion / Inscription
         </button>
     </div>
-
-    <!-- Section de connexion (masquée par défaut) -->
+            <!-- Section de connexion (masquée par défaut) -->
     <div id="loginSection" style="display: none;">
-        <h1>Bienvenue sur la page d'accueil</h1>
         <input type="text" id="loginInput" placeholder="Login">
         <input type="password" id="passwordInput" placeholder="Password">
         <input type="button" id="registerButton" value="S'inscrire">
@@ -41,7 +41,12 @@
        
             <button id="deconnectButton" onclick="deconnecter()">Se déconnecter</button>
     </div>
+        <span id="connectedUser">Aucun</span>
+  </nav>
 
+
+
+    
     <div class="container">
         <!-- MODE SÉLECTION -->
         <div id="selection-mode">
@@ -74,6 +79,8 @@
 
         </div>
 
+
+
         <!-- MODE PROGRAMME -->
         <div id="program-mode" style="display: none;">
             <!-- Header -->
@@ -95,6 +102,9 @@
             <!-- Programme détaillé -->
             <div id="program-details" class="day-card"></div>
         </div>
+    </div>
+
+
 
     </div>
 

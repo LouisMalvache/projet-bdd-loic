@@ -15,6 +15,36 @@
     box-sizing: border-box;
 }
 
+/* NAVBAR */
+.navbar-custom {
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
+    padding: 1rem 0;
+}
+
+.navbar-brand-custom {
+    font-weight: 900;
+    font-size: 1.6rem;
+    text-transform: uppercase;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500;
+    transition: all 0.3s;
+    margin: 0 0.5rem;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-color) !important;
+    transform: translateY(-2px);
+}
+
 /* BASE */
 html { 
     height: 100%; 
@@ -753,4 +783,67 @@ input[type="button"]:active {
         margin-top: 10px;
         display: block;
     }
+}
+
+
+/* Planning hebdomadaire */
+.day-selector {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.day-btn {
+    padding: 1rem 1.5rem;
+    background: #2d2d2d;
+    color: white;
+    border: 2px solid #444;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.day-btn:hover {
+    background: #ffc107;
+    color: #000;
+    border-color: #ffc107;
+}
+
+.day-btn.active {
+    background: #ffc107;
+    color: #000;
+    border-color: #ffc107;
+}
+
+.weekly-day-card {
+    background: #2d2d2d;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.day-card {
+    background: #2d2d2d;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-top: 2rem;
+}
+
+.btn-delete-session {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.exercise-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.5rem 0;
 }
