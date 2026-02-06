@@ -3,115 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programme d'Entraînement - Accueil</title>
+    <title>FitApp - Mon Programme d'Entraînement</title>
 
     <link rel="icon" type="image/png" href="img/logo.png">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Ton CSS personnalisé -->
+
+    <!-- CSS personnalisé -->
     <link rel="stylesheet" href="main.css">
 </head>
 
 <body>
-      <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
-    <div class="container">
-      
-      </div>
-    <!-- Bouton pour afficher/masquer la section de connexion -->
-    <div style="text-align: center; margin: 20px 0;">
-        <button id="toggleLoginButton" class="btn-toggle-login">
-            <i class="fas fa-user"></i> Connexion / Inscription
-        </button>
-    </div>
-            <!-- Section de connexion (masquée par défaut) -->
-    <div id="loginSection" style="display: none;">
-        <input type="text" id="loginInput" placeholder="Login">
-        <input type="password" id="passwordInput" placeholder="Password">
-        <input type="button" id="registerButton" value="S'inscrire">
-        <input type="button" id="loginButton" value="Se connecter">
+    <!-- ==========================================
+         NAVIGATION PRINCIPALE
+         ========================================== -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+        <div class="container">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Logo/Brand -->
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-dumbbell"></i> FitApp
+                </a>
 
-       
-            <button id="deconnectButton" onclick="deconnecter()">Se déconnecter</button>
-    </div>
-        <span id="connectedUser">Aucun</span>
-  </nav>
+                <!-- Navigation principale -->
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#accueil" onclick="showSection('accueil')">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#programme" onclick="showSection('programme')">
+                            <i class="fas fa-plus-circle"></i> Créer Programme
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#planning" onclick="showSection('planning')">
+                            <i class="fas fa-calendar-alt"></i> Mon Planning
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#profil" onclick="showSection('profil')">
+                            <i class="fas fa-user"></i> Profil
+                        </a>
+                    </li>
+                </ul>
 
+                <!-- Bouton de connexion à droite -->
+                <div class="navbar-nav ms-auto d-flex align-items-center">
+                    <button id="toggleLoginButton" class="btn-login-compact">
+                        <i class="fas fa-sign-in-alt"></i> Connexion
+                    </button>
+                    <span id="connectedUserBadge" class="user-badge" style="display: none;">
+                        <i class="fas fa-user-circle"></i> <span id="connectedUser"></span>
+                        <button onclick="deconnecter()" class="btn-logout-mini">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
 
+        <!-- Section de connexion dropdown -->
+        <div id="loginSection" class="login-dropdown" style="display: none;">
+            <div class="container">
+                <div class="login-form">
+                    <input type="text" id="loginInput" placeholder="Login">
+                    <input type="password" id="passwordInput" placeholder="Password">
+                    <div class="login-buttons">
+                        <input type="button" id="registerButton" value="S'inscrire">
+                        <input type="button" id="loginButton" value="Se connecter">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    
-    <div class="container">
-        <!-- MODE SÉLECTION -->
-        <div id="selection-mode">
+    <!-- ==========================================
+         CONTENU PRINCIPAL
+         ========================================== -->
+    <div class="main-content">
 
-            <!-- Hero Section -->
+        <!-- ============ SECTION ACCUEIL ============ -->
+        <section id="accueil-section" class="content-section active">
             <div class="hero-section">
-                <h1><i class="fas fa-plus-circle"></i> Crée Ton Programme</h1>
-                <p>Sélectionne tes exercices préférés pour créer un programme personnalisé</p>
+                <h1><i class="fas fa-dumbbell"></i> Bienvenue sur FitApp</h1>
+                <p>Créez votre programme d'entraînement personnalisé et organisez votre semaine</p>
+
+                <div class="hero-actions">
+                    <button onclick="showSection('programme')" class="btn-capture">
+                        <i class="fas fa-plus-circle"></i> Créer Mon Programme
+                    </button>
+                    <button onclick="showSection('planning')" class="btn-secondary">
+                        <i class="fas fa-calendar-alt"></i> Voir Mon Planning
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SECTION CRÉATION PROGRAMME ============ -->
+        <section id="programme-section" class="content-section">
+            <div class="section-header">
+                <h2><i class="fas fa-plus-circle"></i> Créez Votre Programme</h2>
+                <p>Sélectionnez vos exercices et choisissez le jour pour les enregistrer</p>
             </div>
 
-            <!-- Compteur -->
-            <div id="exercise-counter" style="display: none;">
-                <div class="days-badge">
-                    <i class="fas fa-check-circle"></i> <span id="counter-text">0 exercice sélectionné</span>
+            <!-- Sélection d'exercices -->
+            <div id="exercise-selection">
+                <div id="exercise-counter" style="display: none;">
+                    <div class="days-badge">
+                        <i class="fas fa-check-circle"></i> <span id="counter-text">0 exercice sélectionné</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btn-validate" class="btn-capture" style="display: none;">
+                        <i class="fas fa-arrow-right"></i> Continuer
+                    </button>
+                    <button id="btn-reset" class="btn-reset" style="display: none;">
+                        <i class="fas fa-trash"></i> Réinitialiser
+                    </button>
+                </div>
+
+                <div id="exercises-container"></div>
+            </div>
+
+            <!-- Sauvegarde du programme -->
+            <div id="save-program" style="display: none;">
+                <div class="section-header">
+                    <h3>Enregistrer pour quel jour ?</h3>
+                </div>
+
+                <div class="day-selector">
+                    <div class="days-grid" id="save-day-buttons">
+                        <button class="day-btn" data-day="lundi">
+                            <i class="fas fa-moon"></i>
+                            <span>Lundi</span>
+                        </button>
+                        <button class="day-btn" data-day="mardi">
+                            <i class="fas fa-fire"></i>
+                            <span>Mardi</span>
+                        </button>
+                        <button class="day-btn" data-day="mercredi">
+                            <i class="fas fa-star"></i>
+                            <span>Mercredi</span>
+                        </button>
+                        <button class="day-btn" data-day="jeudi">
+                            <i class="fas fa-bolt"></i>
+                            <span>Jeudi</span>
+                        </button>
+                        <button class="day-btn" data-day="vendredi">
+                            <i class="fas fa-rocket"></i>
+                            <span>Vendredi</span>
+                        </button>
+                        <button class="day-btn" data-day="samedi">
+                            <i class="fas fa-sun"></i>
+                            <span>Samedi</span>
+                        </button>
+                        <button class="day-btn" data-day="dimanche">
+                            <i class="fas fa-bed"></i>
+                            <span>Dimanche</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btn-save-program" class="btn-capture" disabled>
+                        <i class="fas fa-save"></i> Enregistrer le Programme
+                    </button>
+                    <button id="btn-back-selection" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour à la sélection
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SECTION PLANNING HEBDOMADAIRE ============ -->
+        <section id="planning-section" class="content-section">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-alt"></i> Mon Planning Hebdomadaire</h2>
+                <p>Cliquez sur un jour pour voir ou modifier la séance</p>
+            </div>
+
+            <div class="weekly-overview">
+                <div id="weekly-overview" class="weekly-grid"></div>
+            </div>
+
+            <div id="day-details" style="display: none;">
+                <div class="day-session">
+                    <h3 id="selected-day-title">
+                        <i class="fas fa-calendar-day"></i> Séance du Lundi
+                    </h3>
+
+                    <div id="saved-session-display"></div>
+
+                    <div class="action-buttons">
+                        <button id="btn-modify-session" class="btn-secondary">
+                            <i class="fas fa-edit"></i> Modifier
+                        </button>
+                        <button id="btn-close-day" class="btn-reset">
+                            <i class="fas fa-times"></i> Fermer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SECTION PROFIL ============ -->
+        <section id="profil-section" class="content-section">
+            <div id="not-connected-message" class="access-denied" style="display: none;">
+                <div class="hero-section">
+                    <h1><i class="fas fa-user-lock"></i> Accès Refusé</h1>
+                    <p>Vous devez être connecté pour accéder à votre profil</p>
+                    <button onclick="showLogin()" class="btn-capture">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter
+                    </button>
                 </div>
             </div>
 
-            <!-- Boutons d'action -->
-            <div class="action-buttons">
-                <button id="btn-validate" class="btn-capture" disabled>
-                    <i class="fas fa-check"></i> Valider Mon Programme
-                </button>
-                <button id="btn-reset" class="btn-reset" style="display: none;">
-                    <i class="fas fa-trash"></i> Réinitialiser
-                </button>
+            <div id="profile-content" style="display: none;">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h1 id="profile-username">Utilisateur</h1>
+                        <p class="profile-subtitle">
+                            <i class="fas fa-calendar-check"></i> Membre depuis le <span id="profile-member-since">--</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-calendar-alt"></i> Mon Planning de la Semaine
+                    </h3>
+                    <div id="profile-weekly-schedule" class="weekly-schedule-compact"></div>
+                </div>
             </div>
-
-            <!-- Grille d'exercices par groupe musculaire -->
-            <div id="exercises-container"></div>
-
-        </div>
-
-
-
-        <!-- MODE PROGRAMME -->
-        <div id="program-mode" style="display: none;">
-            <!-- Header -->
-            <div class="hero-section">
-                <h1 id="program-display-title">Mon Programme Perso</h1>
-                <p id="program-exercise-count">Programme créé avec 0 exercices</p>
-            </div>
-
-            <!-- Actions -->
-            <div class="action-buttons">
-                <button id="btn-edit" class="btn-capture">
-                    <i class="fas fa-edit"></i> Modifier
-                </button>
-                <button id="btn-reset-program" class="btn-reset">
-                    <i class="fas fa-trash"></i> Réinitialiser
-                </button>
-            </div>
-
-            <!-- Programme détaillé -->
-            <div id="program-details" class="day-card"></div>
-        </div>
-    </div>
-
-
+        </section>
 
     </div>
 
-    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <!-- ==========================================
+         SCRIPTS
+         ========================================== -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Your custom JavaScript -->
     <script src="main.js"></script>
 </body>
 </html>

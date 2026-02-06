@@ -45,6 +45,104 @@
     transform: translateY(-2px);
 }
 
+/* ========================================
+   NOUVEAU BOUTON DE CONNEXION COMPACT
+======================================== */
+.btn-login-compact {
+    background: var(--gradient-primary);
+    border: none;
+    color: var(--text-light);
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 3px 10px rgba(255, 69, 0, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-login-compact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.5);
+}
+
+.btn-login-compact i {
+    font-size: 1rem;
+}
+
+/* Badge utilisateur connecté */
+.user-badge {
+    background: rgba(255, 69, 0, 0.2);
+    border: 2px solid var(--primary-color);
+    color: var(--text-light);
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.user-badge i {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ========================================
+   DROPDOWN DE CONNEXION
+======================================== */
+.login-dropdown {
+    background: rgba(26, 26, 26, 0.98);
+    border-top: 2px solid rgba(255, 69, 0, 0.3);
+    padding: 20px 0;
+    animation: slideDown 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.login-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.login-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
 /* BASE */
 html { 
     height: 100%; 
@@ -55,6 +153,7 @@ body {
     color: var(--text-light);
     min-height: 100vh;
     padding: 40px 20px;
+    padding-top: 100px; /* Espace pour la navbar fixe */
     display: flex;
     flex-direction: column;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -84,15 +183,14 @@ h1 {
 input[type="text"],
 input[type="password"] {
     width: 100%;
-    max-width: 400px;
     display: block;
-    margin: 15px auto;
-    padding: 15px 20px;
+    margin: 10px 0;
+    padding: 12px 18px;
     background: rgba(36, 36, 36, 0.8);
     border: 2px solid rgba(255, 69, 0, 0.3);
-    border-radius: 12px;
+    border-radius: 10px;
     color: var(--text-light);
-    font-size: 1rem;
+    font-size: 0.95rem;
     transition: all 0.3s;
 }
 
@@ -101,7 +199,7 @@ input[type="password"]:focus {
     outline: none;
     border-color: var(--primary-color);
     background: rgba(36, 36, 36, 1);
-    box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
 }
 
 input[type="text"]::placeholder,
@@ -112,30 +210,27 @@ input[type="password"]::placeholder {
 /* Boutons login/register */
 input[type="button"] {
     width: 100%;
-    max-width: 400px;
-    display: block;
-    margin: 15px auto;
-    padding: 15px 20px;
+    padding: 12px 18px;
     background: var(--gradient-primary);
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     color: var(--text-light);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
 }
 
 input[type="button"]:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(255, 69, 0, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(255, 69, 0, 0.5);
 }
 
 input[type="button"]:active {
-    transform: translateY(-1px);
+    transform: translateY(0);
 }
 
 
@@ -144,20 +239,20 @@ input[type="button"]:active {
     background: rgba(220, 53, 69, 0.2);
     border: 2px solid #dc3545;
     color: #dc3545;
-    padding: 10px 25px;
-    border-radius: 25px;
+    padding: 12px 20px;
+    border-radius: 10px;
     font-weight: 600;
-    margin-left: 15px;
     cursor: pointer;
     transition: all 0.3s;
     width: 100%;
-    max-width: 400px;
-    display: block;
-    margin: 15px auto;
-    font-size: 1.1rem;
+    margin-top: 15px;
+    font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 
@@ -514,55 +609,6 @@ input[type="button"]:active {
     }
 }
 
-/* ========================================
-   BOUTON TOGGLE CONNEXION
-======================================== */
-.btn-toggle-login {
-    background: var(--gradient-primary);
-    border: none;
-    color: var(--text-light);
-    padding: 12px 30px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-toggle-login:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(255, 69, 0, 0.5);
-}
-
-.btn-toggle-login:active {
-    transform: translateY(-1px);
-}
-
-.btn-toggle-login i {
-    font-size: 1.2rem;
-}
-
-/* Animation de la section de connexion */
-#loginSection {
-    animation: slideDown 0.4s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
 /* ========================================
    PROGRAMME MODE (Programme détaillé)
@@ -750,6 +796,7 @@ input[type="button"]:active {
 @media (max-width: 500px) {
     body {
         padding: 20px 10px;
+        padding-top: 100px;
     }
 
     h1 {
@@ -846,4 +893,888 @@ input[type="button"]:active {
     align-items: center;
     gap: 1rem;
     margin: 0.5rem 0;
+}
+
+
+
+/* ========================================
+   PAGE PROFIL UTILISATEUR
+======================================== */
+
+.profile-header {
+    background: linear-gradient(135deg, var(--accent-color), #2a2a2a);
+    border: 2px solid rgba(255, 69, 0, 0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.profile-avatar {
+    font-size: 5rem;
+    color: var(--primary-color);
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-info h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    text-align: left;
+}
+
+.profile-subtitle {
+    color: var(--text-muted);
+    margin: 0.5rem 0 0 0;
+    font-size: 1rem;
+}
+
+.btn-logout {
+    background: rgba(220, 53, 69, 0.2);
+    border: 2px solid #dc3545;
+    color: #dc3545;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.btn-logout:hover {
+    background: #dc3545;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+}
+
+/* STATISTIQUES */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, var(--accent-color), #2a2a2a);
+    border: 2px solid rgba(255, 69, 0, 0.2);
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 69, 0, 0.3);
+}
+
+.stat-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+}
+
+.stat-content h3 {
+    font-size: 2.5rem;
+    margin: 0;
+    color: var(--text-light);
+    font-weight: 900;
+}
+
+.stat-content p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* SECTIONS DU PROFIL */
+.profile-section {
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* PLANNING HEBDOMADAIRE */
+.weekly-schedule {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.day-schedule-card {
+    background: linear-gradient(135deg, var(--accent-color), #2a2a2a);
+    border: 2px solid rgba(255, 69, 0, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.day-schedule-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 69, 0, 0.3);
+}
+
+.day-schedule-card.rest-day {
+    border-style: dashed;
+    opacity: 0.7;
+}
+
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+.day-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--text-light);
+}
+
+.badge-exercises {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-rest {
+    background: rgba(150, 150, 150, 0.3);
+    color: var(--text-muted);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.exercise-list {
+    margin-top: 1rem;
+}
+
+.muscle-group-section {
+    margin-bottom: 1rem;
+}
+
+.muscle-group-section h4 {
+    color: var(--primary-color);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.muscle-group-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.muscle-group-section li {
+    color: var(--text-light);
+    padding: 0.3rem 0;
+    font-size: 0.9rem;
+}
+
+.rest-message {
+    color: var(--text-muted);
+    text-align: center;
+    margin: 1rem 0;
+    font-style: italic;
+}
+
+/* GROUPES MUSCULAIRES */
+.muscle-groups-container {
+    background: linear-gradient(135deg, var(--accent-color), #2a2a2a);
+    border: 2px solid rgba(255, 69, 0, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+}
+
+.muscle-bar {
+    margin-bottom: 1.5rem;
+}
+
+.muscle-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.muscle-count {
+    color: var(--text-muted);
+    font-weight: normal;
+    font-size: 0.9rem;
+}
+
+.muscle-progress {
+    background: rgba(0, 0, 0, 0.3);
+    height: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.muscle-progress-bar {
+    background: var(--gradient-primary);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+/* HISTORIQUE */
+.session-history {
+    background: linear-gradient(135deg, var(--accent-color), #2a2a2a);
+    border: 2px solid rgba(255, 69, 0, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+}
+
+.history-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+    transition: all 0.3s;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item:hover {
+    background: rgba(255, 69, 0, 0.05);
+    border-radius: 10px;
+}
+
+.history-icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.history-content h4 {
+    margin: 0 0 0.3rem 0;
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.history-content p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.history-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.no-data {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-info h1 {
+        text-align: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .weekly-schedule {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================
+   STYLES POUR LA STRUCTURE UNIFIÉE
+   ========================================== */
+
+/* Contenu principal */
+.main-content {
+    min-height: calc(100vh - 76px);
+    padding-top: 76px;
+}
+
+/* Sections de contenu */
+.content-section {
+    display: none;
+    padding: 2rem 0;
+    min-height: calc(100vh - 76px);
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Boutons d'action dans l'accueil */
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.hero-actions .btn-capture,
+.hero-actions .btn-secondary {
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-actions .btn-capture {
+    background: var(--gradient-primary);
+    color: var(--text-light);
+    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+}
+
+.hero-actions .btn-capture:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 69, 0, 0.5);
+}
+
+.hero-actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.hero-actions .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Statistiques rapides */
+.stats-overview {
+    margin-top: 3rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary-color);
+}
+
+.stat-card i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Headers de section */
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    color: var(--text-light);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.section-header h2 i {
+    color: var(--primary-color);
+}
+
+.section-header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+/* Boutons d'action */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+/* Sélecteur de jours */
+.day-selector {
+    margin: 2rem 0;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.day-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    padding: 1rem;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.day-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.day-btn.active {
+    background: var(--gradient-primary);
+    border-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.day-btn i {
+    font-size: 1.5rem;
+}
+
+.day-btn span {
+    font-weight: 600;
+}
+
+/* Contenu du jour sélectionné */
+.day-session {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.day-session h3 {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.assign-actions {
+    margin-bottom: 2rem;
+}
+
+.btn-assign {
+    background: var(--gradient-primary);
+    color: var(--text-light);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-assign:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.4);
+}
+
+/* Aperçu hebdomadaire */
+.weekly-overview {
+    margin-top: 3rem;
+}
+
+.weekly-overview h3 {
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.weekly-overview h3 i {
+    color: var(--primary-color);
+}
+
+.weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.weekly-day-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.weekly-day-card:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.weekly-day-card.rest-day {
+    opacity: 0.7;
+}
+
+.weekly-day-card .day-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.weekly-day-card .day-header h4 {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.weekly-day-card .day-header i {
+    color: var(--primary-color);
+}
+
+.weekly-day-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.weekly-day-card .muscle-groups {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    opacity: 0.8;
+}
+
+/* Section profil */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--text-light);
+}
+
+.profile-info h1 {
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.profile-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.profile-section {
+    margin-bottom: 3rem;
+}
+
+.profile-section h3 {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-section h3 i {
+    color: var(--primary-color);
+}
+
+/* Planning compact du profil */
+.weekly-schedule-compact {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.profile-day-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.profile-day-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-day-item.has-session {
+    border-color: var(--primary-color);
+    background: rgba(255, 69, 0, 0.1);
+}
+
+.profile-day-item .day-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.profile-day-item strong {
+    color: var(--text-light);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.profile-day-item small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Graphiques des groupes musculaires */
+.muscle-groups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.muscle-group-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.muscle-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.muscle-name {
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.muscle-count {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.progress-bar {
+    flex: 2;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Historique des séances */
+.session-history {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-item i {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    width: 20px;
+}
+
+.history-content {
+    flex: 1;
+}
+
+.history-content strong {
+    color: var(--text-light);
+    display: block;
+}
+
+.history-content small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Message d'accès refusé */
+.access-denied {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+/* Bouton logout mini */
+.btn-logout-mini {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-logout-mini:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--primary-color);
+}
+
+/* Responsive pour la structure unifiée */
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 70px;
+    }
+
+    .content-section {
+        padding: 1rem 0;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .days-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .weekly-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .weekly-schedule-compact {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .muscle-group-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .progress-bar {
+        width: 100%;
+    }
 }

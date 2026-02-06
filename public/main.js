@@ -1,192 +1,317 @@
-const loginInput = document.getElementById('loginInput');
-const passwordInput = document.getElementById('passwordInput');
-const registerBouton = document.getElementById('registerButton');
-const loginBouton = document.getElementById('loginButton');
+// ==========================================
+// FITAPP - APPLICATION UNIFIÉE
+// ==========================================
 
-// VARIABLES GLOBALES
+// Variables globales
 let customSelectedExercises = [];
 let weeklyPlan = {
-    lundi: null,
-    mardi: null,
-    mercredi: null,
-    jeudi: null,
-    vendredi: null,
-    samedi: null,
-    dimanche: null
+    lundi: null, mardi: null, mercredi: null, jeudi: null,
+    vendredi: null, samedi: null, dimanche: null
 };
 let selectedDay = null;
+let currentSection = 'accueil';
 
-// Toggle pour afficher/masquer la section de connexion
-document.addEventListener('DOMContentLoaded', () => {
-    const toggleButton = document.getElementById('toggleLoginButton');
-    const loginSection = document.getElementById('loginSection');
-    
-    if (toggleButton && loginSection) {
-        toggleButton.addEventListener('click', () => {
-            if (loginSection.style.display === 'none') {
-                loginSection.style.display = 'block';
-                toggleButton.innerHTML = '<i class="fas fa-times"></i> Fermer';
-            } else {
-                loginSection.style.display = 'none';
-                toggleButton.innerHTML = '<i class="fas fa-user"></i> Connexion / Inscription';
-            }
-        });
-    }
-    
-    // Vérifier si l'utilisateur est déjà connecté (DÉPLACÉ ICI)
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-        document.getElementById('connectedUser').textContent = localStorage.getItem('userLogin') || 'Connecté';
-        showWeeklyPlanningIfConnected();
-    }
-    
-    // Initialiser le planning au chargement
-    initWeeklyPlanning();
-    
-    // Initialiser la sélection d'exercices
-    initExerciseSelection();
-});
+// ==========================================
+// GESTION DES SECTIONS
+// ==========================================
 
-// INSCRIPTION
-registerBouton.addEventListener('click', () => {
+function showSection(sectionName) {
+    // Masquer toutes les sections
+    const sections = document.querySelectorAll('.content-section');
+    sections.forEach(section => section.classList.remove('active'));
+
+    // Masquer la section active
+    const activeSection = document.querySelector('.content-section.active');
+    if (activeSection) {
+        activeSection.classList.remove('active');
+    }
+
+    // Afficher la section demandée
+    const targetSection = document.getElementById(sectionName + '-section');
+    if (targetSection) {
+        targetSection.classList.add('active');
+        currentSection = sectionName;
+    }
+
+    // Mettre à jour la navigation
+    updateNavigation(sectionName);
+
+    // Actions spécifiques selon la section
+    switch(sectionName) {
+        case 'planning':
+            initWeeklyPlanning();
+            break;
+        case 'programme':
+            initExerciseSelection();
+            break;
+        case 'profil':
+            initProfilePage();
+            break;
+        case 'accueil':
+            // Rien de spécial pour l'accueil
+            break;
+    }
+}
+
+function updateNavigation(activeSection) {
+    // Mettre à jour les classes actives dans la navbar
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+    navLinks.forEach(link => link.classList.remove('active'));
+
+    const activeLink = document.querySelector(`[href="#${activeSection}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+}
+
+// ==========================================
+// AUTHENTIFICATION
+// ==========================================
+
+const loginInput = document.getElementById('loginInput');
+const passwordInput = document.getElementById('passwordInput');
+const registerButton = document.getElementById('registerButton');
+const loginButton = document.getElementById('loginButton');
+
+// Inscription
+registerButton.addEventListener('click', () => {
     fetch('/register', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-            login: loginInput.value, 
-            password: passwordInput.value 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            login: loginInput.value,
+            password: passwordInput.value
         })
     })
     .then(response => response.json())
     .then(data => {
         alert(data.message);
-        window.location.reload();
+        if (data.success) {
+            document.getElementById('loginInput').value = loginInput.value;
+            document.getElementById('loginButton').click();
+        } else {
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors de l\'inscription:', error);
+        alert('Erreur lors de l\'inscription');
     });
 });
 
-// CONNEXION
-const loginButton = document.getElementById('loginButton');
+// Connexion
 loginButton.addEventListener('click', () => {
-    const loginInput = document.getElementById('loginInput').value;
-    const passwordInput = document.getElementById('passwordInput').value;
-    
+    const login = loginInput.value;
+    const password = passwordInput.value;
+
+    if (!login || !password) {
+        alert('Veuillez remplir tous les champs');
+        return;
+    }
+
     fetch('/connexion', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-            login: loginInput,  
-            password: passwordInput
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, password })
     })
     .then(response => response.json())
     .then(data => {
-        alert(data.message);    
-        console.log(data.user.id);
-        localStorage.setItem('userId', data.user.id);
-        localStorage.setItem('userLogin', loginInput);
-        
-        // Afficher le planning hebdomadaire
-        showWeeklyPlanningIfConnected();
-        
-        // Afficher les infos utilisateur
-        document.getElementById('connectedUser').textContent = loginInput;
-        
-        console.log(localStorage.getItem('userId'));
-    });
-}); 
+        if (data.success !== false) {
+            alert(data.message);
+            localStorage.setItem('userId', data.user.id);
+            localStorage.setItem('userLogin', login);
 
+            // Mettre à jour l'interface
+            updateAuthUI(login);
+
+            // Fermer le dropdown
+            document.getElementById('loginSection').style.display = 'none';
+
+            // Vider les champs
+            loginInput.value = '';
+            passwordInput.value = '';
+
+            // Actualiser les sections qui dépendent de l'authentification
+            if (currentSection === 'profil') {
+                initProfilePage();
+            }
+        } else {
+            alert(data.message || 'Erreur de connexion');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors de la connexion:', error);
+        alert('Erreur lors de la connexion');
+    });
+});
+
+// Déconnexion
 function deconnecter() {
     localStorage.removeItem('userId');
     localStorage.removeItem('userLogin');
-    document.getElementById('connectedUser').textContent = 'Aucun';
-    
-    // Masquer le planning
-    const weeklyPlanningSection = document.getElementById('weekly-planning-section');
-    if (weeklyPlanningSection) {
-        weeklyPlanningSection.style.display = 'none';
+
+    // Réinitialiser l'interface
+    updateAuthUI(null);
+
+    // Fermer le dropdown
+    document.getElementById('loginSection').style.display = 'none';
+
+    // Masquer les statistiques rapides
+    document.getElementById('quick-stats').style.display = 'none';
+
+    // Recharger la page pour réinitialiser complètement
+    window.location.reload();
+}
+
+function updateAuthUI(userLogin) {
+    const toggleButton = document.getElementById('toggleLoginButton');
+    const connectedUserBadge = document.getElementById('connectedUserBadge');
+    const connectedUser = document.getElementById('connectedUser');
+
+    if (userLogin) {
+        connectedUser.textContent = userLogin;
+        connectedUserBadge.style.display = 'inline-flex';
+        toggleButton.style.display = 'none';
+    } else {
+        connectedUser.textContent = '';
+        connectedUserBadge.style.display = 'none';
+        toggleButton.style.display = 'inline-flex';
     }
-    
-    alert('Vous êtes déconnecté');
-    window.location.reload(); 
+}
+
+function showLogin() {
+    document.getElementById('loginSection').style.display = 'block';
 }
 
 // ==========================================
-// SYSTÈME DE PLANNING HEBDOMADAIRE
+// INITIALISATION AU CHARGEMENT
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialiser la navigation
+    initNavigation();
+
+    // Vérifier l'état de connexion
+    const userId = localStorage.getItem('userId');
+    const userLogin = localStorage.getItem('userLogin');
+
+    if (userId && userLogin) {
+        updateAuthUI(userLogin);
+    }
+
+    // Afficher la section d'accueil par défaut
+    showSection('accueil');
+});
+
+function initNavigation() {
+    // Toggle du dropdown de connexion
+    const toggleButton = document.getElementById('toggleLoginButton');
+    const loginSection = document.getElementById('loginSection');
+
+    if (toggleButton && loginSection) {
+        toggleButton.addEventListener('click', () => {
+            loginSection.style.display = loginSection.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Fermer le dropdown si on clique en dehors
+        document.addEventListener('click', function(event) {
+            const isClickInside = loginSection.contains(event.target) ||
+                                 toggleButton.contains(event.target);
+
+            if (!isClickInside && loginSection.style.display === 'block') {
+                loginSection.style.display = 'none';
+            }
+        });
+    }
+}
+
+// ==========================================
+// STATISTIQUES RAPIDES (ACCUEIL)
+// ==========================================
+
+function updateQuickStats() {
+    const userId = localStorage.getItem('userId');
+    const quickStats = document.getElementById('quick-stats');
+
+    if (!userId) {
+        quickStats.style.display = 'none';
+        return;
+    }
+
+    // Charger les données du planning
+    fetch(`/weekly-plan/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            let totalSessions = 0;
+            let totalExercises = 0;
+            const muscleGroups = new Set();
+
+            Object.values(data).forEach(session => {
+                if (session && session.exercises) {
+                    totalSessions++;
+                    totalExercises += session.exercises.length;
+                    session.exercises.forEach(ex => muscleGroups.add(ex.muscle));
+                }
+            });
+
+            // Mettre à jour l'affichage
+            document.getElementById('total-sessions').textContent = totalSessions;
+            document.getElementById('total-exercises').textContent = totalExercises;
+            document.getElementById('muscle-groups').textContent = muscleGroups.size;
+
+            quickStats.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des statistiques:', error);
+            quickStats.style.display = 'none';
+        });
+}
+
+// ==========================================
+// PLANNING HEBDOMADAIRE
 // ==========================================
 
 function initWeeklyPlanning() {
-    const dayButtons = document.querySelectorAll('.day-btn');
-    const daySessionContainer = document.getElementById('day-session-container');
+    const weeklyOverview = document.getElementById('weekly-overview');
+    const dayDetails = document.getElementById('day-details');
     const selectedDayTitle = document.getElementById('selected-day-title');
-    const btnAssignSession = document.getElementById('btn-assign-session');
+    const btnModifySession = document.getElementById('btn-modify-session');
+    const btnCloseDay = document.getElementById('btn-close-day');
 
-    // Charger le planning depuis le serveur
+    // Charger le planning
     loadWeeklyPlan();
 
-    // Gestion des clics sur les jours
-    dayButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            dayButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedDay = btn.dataset.day;
-            daySessionContainer.style.display = 'block';
-            selectedDayTitle.innerHTML = `<i class="fas fa-calendar-day"></i> Séance du ${capitalizeFirstLetter(selectedDay)}`;
-            displaySavedSession(selectedDay);
-        });
+    // Gestion des clics sur les jours dans l'aperçu
+    weeklyOverview.addEventListener('click', (e) => {
+        const dayCard = e.target.closest('.weekly-day-card');
+        if (dayCard) {
+            const day = dayCard.dataset.day;
+            selectedDay = day;
+            displayDayDetails(day);
+        }
     });
 
-    // Enregistrer le programme actuel pour le jour sélectionné
-    if (btnAssignSession) {
-        btnAssignSession.addEventListener('click', () => {
-            if (!selectedDay) {
-                alert('Veuillez sélectionner un jour de la semaine');
-                return;
-            }
+    btnModifySession.addEventListener('click', () => {
+        // Aller à la section programme pour modifier
+        showSection('programme');
+    });
 
-            if (customSelectedExercises.length === 0) {
-                alert('Veuillez créer un programme avec des exercices avant de l\'enregistrer');
-                return;
-            }
-
-            const userId = localStorage.getItem('userId');
-            if (!userId) {
-                alert('Vous devez être connecté pour enregistrer un planning');
-                return;
-            }
-
-            // Sauvegarder directement sur le serveur
-            fetch('/save-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    day: selectedDay,
-                    exercises: customSelectedExercises
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(`Séance enregistrée pour le ${selectedDay} !`);
-                // Recharger le planning
-                loadWeeklyPlan();
-            })
-            .catch(error => {
-                console.error('Erreur lors de la sauvegarde:', error);
-                alert('Erreur lors de la sauvegarde de la séance');
-            });
-        });
-    }
-
-    updateWeeklyOverview();
+    btnCloseDay.addEventListener('click', () => {
+        dayDetails.style.display = 'none';
+        selectedDay = null;
+    });
 }
 
-// Charger le planning depuis le serveur
+function displayDayDetails(day) {
+    const dayDetails = document.getElementById('day-details');
+    const selectedDayTitle = document.getElementById('selected-day-title');
+    const savedSessionDisplay = document.getElementById('saved-session-display');
+
+    selectedDayTitle.innerHTML = `<i class="fas fa-calendar-day"></i> Séance du ${capitalizeFirstLetter(day)}`;
+    displaySavedSession(day);
+    dayDetails.style.display = 'block';
+}
+
 function loadWeeklyPlan() {
     const userId = localStorage.getItem('userId');
     if (!userId) return;
@@ -204,36 +329,32 @@ function loadWeeklyPlan() {
                 dimanche: data.dimanche || null
             };
             updateWeeklyOverview();
-            console.log('Planning chargé depuis le serveur:', weeklyPlan);
         })
         .catch(error => {
             console.error('Erreur lors du chargement du planning:', error);
+            alert('Erreur lors du chargement du planning');
         });
 }
 
-// Supprimer une séance du serveur
 function deleteSession(day) {
     if (confirm(`Voulez-vous vraiment supprimer la séance du ${day} ?`)) {
         const userId = localStorage.getItem('userId');
-        
-        fetch(`/delete-session/${userId}/${day}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            weeklyPlan[day] = null;
-            displaySavedSession(day);
-            updateWeeklyOverview();
-        })
-        .catch(error => {
-            console.error('Erreur lors de la suppression:', error);
-            alert('Erreur lors de la suppression de la séance');
-        });
+
+        fetch(`/delete-session/${userId}/${day}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                weeklyPlan[day] = null;
+                displaySavedSession(day);
+                updateWeeklyOverview();
+            })
+            .catch(error => {
+                console.error('Erreur lors de la suppression:', error);
+                alert('Erreur lors de la suppression de la séance');
+            });
     }
 }
 
-// Afficher la séance enregistrée pour un jour
 function displaySavedSession(day) {
     const savedSessionDisplay = document.getElementById('saved-session-display');
     const session = weeklyPlan[day];
@@ -243,12 +364,14 @@ function displaySavedSession(day) {
             <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
                 <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                 <p>Aucune séance enregistrée pour ce jour</p>
+                <button onclick="showSection('programme')" class="btn-capture">
+                    <i class="fas fa-plus"></i> Créer un programme
+                </button>
             </div>
         `;
         return;
     }
 
-    // Grouper les exercices par muscle
     const grouped = session.exercises.reduce((acc, ex) => {
         if (!acc[ex.muscle]) acc[ex.muscle] = [];
         acc[ex.muscle].push(ex);
@@ -283,7 +406,6 @@ function displaySavedSession(day) {
     savedSessionDisplay.innerHTML = html;
 }
 
-// Mettre à jour la vue d'ensemble hebdomadaire
 function updateWeeklyOverview() {
     const overview = document.getElementById('weekly-overview');
     if (!overview) return;
@@ -291,13 +413,8 @@ function updateWeeklyOverview() {
     let html = '';
     const jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
     const icons = {
-        'lundi': 'fa-moon',
-        'mardi': 'fa-fire',
-        'mercredi': 'fa-star',
-        'jeudi': 'fa-bolt',
-        'vendredi': 'fa-rocket',
-        'samedi': 'fa-sun',
-        'dimanche': 'fa-bed'
+        'lundi': 'fa-moon', 'mardi': 'fa-fire', 'mercredi': 'fa-star',
+        'jeudi': 'fa-bolt', 'vendredi': 'fa-rocket', 'samedi': 'fa-sun', 'dimanche': 'fa-bed'
     };
 
     jours.forEach(jour => {
@@ -305,40 +422,22 @@ function updateWeeklyOverview() {
         const hasSession = session && session.exercises && session.exercises.length > 0;
 
         html += `
-            <div class="weekly-day-card ${!hasSession ? 'rest-day' : ''}">
-                <h4>
-                    <i class="fas ${icons[jour]}"></i> ${capitalizeFirstLetter(jour)}
-                    ${hasSession ? `<span style="color: var(--text-light); font-size: 0.9rem; font-weight: normal;">(${session.exercises.length} exercices)</span>` : ''}
-                </h4>
+            <div class="weekly-day-card ${!hasSession ? 'rest-day' : ''}" data-day="${jour}">
+                <div class="day-header">
+                    <i class="fas ${icons[jour]}"></i>
+                    <h4>${capitalizeFirstLetter(jour)}</h4>
+                </div>
+                ${hasSession ? 
+                    `<p>${session.exercises.length} exercice(s)</p>
+                     <div class="muscle-groups">
+                         ${[...new Set(session.exercises.map(ex => ex.muscle))].join(', ')}
+                     </div>` : 
+                    '<p>Jour de repos</p>'}
+            </div>
         `;
-
-        if (hasSession) {
-            const muscleGroups = [...new Set(session.exercises.map(ex => ex.muscle))];
-            html += `<p style="color: var(--text-muted);">Groupes musculaires : ${muscleGroups.join(', ')}</p>`;
-        } else {
-            html += `<p style="color: var(--text-muted);"><i class="fas fa-spa"></i> Jour de repos</p>`;
-        }
-
-        html += `</div>`;
     });
 
     overview.innerHTML = html;
-}
-
-// Fonction utilitaire pour capitaliser la première lettre
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-// Afficher le planning quand l'utilisateur est connecté
-function showWeeklyPlanningIfConnected() {
-    const userId = localStorage.getItem('userId');
-    const weeklyPlanningSection = document.getElementById('weekly-planning-section');
-    
-    if (userId && weeklyPlanningSection) {
-        weeklyPlanningSection.style.display = 'block';
-        loadWeeklyPlan();
-    }
 }
 
 // ==========================================
@@ -346,10 +445,10 @@ function showWeeklyPlanningIfConnected() {
 // ==========================================
 
 function initExerciseSelection() {
-    const selectionMode = document.getElementById("selection-mode");
-    const programMode = document.getElementById("program-mode");
+    const exerciseSelection = document.getElementById("exercise-selection");
+    const saveProgram = document.getElementById("save-program");
 
-    if (!selectionMode || !programMode) return;
+    if (!exerciseSelection || !saveProgram) return;
 
     const exercisesByMuscle = {
         "Épaules": [
@@ -413,18 +512,19 @@ function initExerciseSelection() {
     const container = document.getElementById("exercises-container");
     const counterText = document.getElementById("counter-text");
     const counterBox = document.getElementById("exercise-counter");
-    const btnValidate = document.getElementById("btn-validate");
     const btnReset = document.getElementById("btn-reset");
-    const programDetails = document.getElementById("program-details");
-    const programCount = document.getElementById("program-exercise-count");
-    const btnEdit = document.getElementById("btn-edit");
-    const btnResetProgram = document.getElementById("btn-reset-program");
+    const btnSaveProgram = document.getElementById("btn-save-program");
+    const btnBackSelection = document.getElementById("btn-back-selection");
+    const saveDayButtons = document.getElementById("save-day-buttons");
+    const btnValidate = document.getElementById("btn-validate");
+
+    let selectedDayForSave = null;
 
     function renderExercises() {
         container.innerHTML = "";
         Object.entries(exercisesByMuscle).forEach(([muscle, exercises]) => {
             const section = document.createElement("section");
-            section.innerHTML = `<h2>${muscle}</h2>`;
+            section.innerHTML = `<h3>${muscle}</h3>`;
 
             const grid = document.createElement("div");
             grid.className = "d-flex flex-wrap justify-content-center";
@@ -462,77 +562,246 @@ function initExerciseSelection() {
         counterText.textContent = `${customSelectedExercises.length} exercice${customSelectedExercises.length > 1 ? "s" : ""} sélectionné${customSelectedExercises.length > 1 ? "s" : ""}`;
         counterBox.style.display = customSelectedExercises.length ? "block" : "none";
         btnReset.style.display = customSelectedExercises.length ? "inline-block" : "none";
-        btnValidate.disabled = customSelectedExercises.length === 0;
-        btnValidate.style.opacity = customSelectedExercises.length === 0 ? "0.5" : "1";
-        renderExercises();
+
+        if (customSelectedExercises.length > 0) {
+            document.getElementById("btn-validate").style.display = "inline-block";
+        } else {
+            document.getElementById("btn-validate").style.display = "none";
+        }
     }
 
-    function renderProgram() {
-        programDetails.innerHTML = "";
-        const grouped = customSelectedExercises.reduce((acc, ex) => {
-            if (!acc[ex.muscle]) acc[ex.muscle] = [];
-            acc[ex.muscle].push(ex);
-            return acc;
-        }, {});
-
-        const durationExercises = ["Planche", "Planche inversée", "Mountain climber"];
-
-        Object.entries(grouped).forEach(([muscle, exercises]) => {
-            const div = document.createElement("div");
-            div.className = "mb-4";
-            div.innerHTML = `<h3 class="text-warning">${muscle}</h3>`;
-
-            exercises.forEach(ex => {
-                const isDuration = durationExercises.some(name => 
-                    ex.name.toLowerCase().includes(name.toLowerCase())
-                );
-                
-                const repsInfo = isDuration 
-                    ? "2-3 séries de 30-60 secondes" 
-                    : "3-4 séries de 8-12 reps";
-
-                const item = document.createElement("div");
-                item.className = "d-flex align-items-center mb-2 bg-dark p-2 rounded";
-                item.innerHTML = `
-                    <img src="${ex.image}" width="80" class="me-3 rounded">
-                    <div><strong>${ex.name}</strong><br><small>${repsInfo}</small></div>
-                    <button class="btn btn-sm btn-outline-danger ms-auto"><i class="fas fa-trash"></i></button>
-                `;
-                item.querySelector("button").addEventListener("click", () => {
-                    customSelectedExercises = customSelectedExercises.filter(e => e.name !== ex.name);
-                    renderProgram();
-                });
-                div.appendChild(item);
-            });
-            programDetails.appendChild(div);
-        });
-    }
-
+    // Bouton pour aller à la sauvegarde
     btnValidate.addEventListener("click", () => {
         if (customSelectedExercises.length === 0) return;
-        selectionMode.style.display = "none";
-        programMode.style.display = "block";
-        programCount.textContent = `Programme créé avec ${customSelectedExercises.length} exercice${customSelectedExercises.length > 1 ? "s" : ""}`;
-        renderProgram();
+        exerciseSelection.style.display = "none";
+        saveProgram.style.display = "block";
     });
 
-    btnReset.addEventListener("click", resetAll);
-    btnResetProgram.addEventListener("click", resetAll);
+    btnReset.addEventListener("click", resetSelection);
 
-    function resetAll() {
+    function resetSelection() {
         if (confirm("Supprimer toutes les sélections ?")) {
             customSelectedExercises = [];
-            selectionMode.style.display = "block";
-            programMode.style.display = "none";
             updateUI();
         }
     }
 
-    btnEdit.addEventListener("click", () => {
-        selectionMode.style.display = "block";
-        programMode.style.display = "none";
-        updateUI();
+    // Gestion des jours pour sauvegarde
+    saveDayButtons.addEventListener("click", (e) => {
+        if (e.target.closest(".day-btn")) {
+            const btn = e.target.closest(".day-btn");
+            saveDayButtons.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedDayForSave = btn.dataset.day;
+            btnSaveProgram.disabled = false;
+        }
+    });
+
+    btnSaveProgram.addEventListener("click", () => {
+        if (!selectedDayForSave || customSelectedExercises.length === 0) return;
+
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            alert('Vous devez être connecté pour enregistrer un planning');
+            return;
+        }
+
+        fetch('/save-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: userId,
+                day: selectedDayForSave,
+                exercises: customSelectedExercises
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(`Programme enregistré pour le ${selectedDayForSave} !`);
+            customSelectedExercises = [];
+            selectedDayForSave = null;
+            saveProgram.style.display = "none";
+            exerciseSelection.style.display = "block";
+            updateUI();
+            loadWeeklyPlan(); // Recharger le planning
+        })
+        .catch(error => {
+            console.error('Erreur lors de la sauvegarde:', error);
+            alert('Erreur lors de la sauvegarde du programme');
+        });
+    });
+
+    btnBackSelection.addEventListener("click", () => {
+        saveProgram.style.display = "none";
+        exerciseSelection.style.display = "block";
+        selectedDayForSave = null;
+        saveDayButtons.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+        btnSaveProgram.disabled = true;
     });
 
     renderExercises();
+}
+
+// ==========================================
+// PAGE PROFIL
+// ==========================================
+
+function initProfilePage() {
+    const userId = localStorage.getItem('userId');
+    const userLogin = localStorage.getItem('userLogin');
+
+    const notConnectedMessage = document.getElementById('not-connected-message');
+    const profileContent = document.getElementById('profile-content');
+
+    if (!userId || !userLogin) {
+        notConnectedMessage.style.display = 'block';
+        profileContent.style.display = 'none';
+        return;
+    }
+
+    notConnectedMessage.style.display = 'none';
+    profileContent.style.display = 'block';
+
+    // Mettre à jour les informations du profil
+    document.getElementById('profile-username').textContent = userLogin;
+    document.getElementById('profile-member-since').textContent = new Date().toLocaleDateString('fr-FR');
+
+    // Charger le planning hebdomadaire pour le profil
+    loadWeeklyScheduleForProfile();
+}
+
+function loadWeeklyScheduleForProfile() {
+    const userId = localStorage.getItem('userId');
+    const container = document.getElementById('profile-weekly-schedule');
+
+    if (!userId || !container) return;
+
+    fetch(`/weekly-plan/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            let html = '';
+
+            if (Object.values(data).every(session => !session || !session.exercises || session.exercises.length === 0)) {
+                html = '<p class="text-muted">Aucun planning défini cette semaine</p>';
+            } else {
+                const jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+                const icons = {
+                    'lundi': 'fa-moon', 'mardi': 'fa-fire', 'mercredi': 'fa-star',
+                    'jeudi': 'fa-bolt', 'vendredi': 'fa-rocket', 'samedi': 'fa-sun', 'dimanche': 'fa-bed'
+                };
+
+                jours.forEach(jour => {
+                    const session = data[jour];
+                    const hasSession = session && session.exercises && session.exercises.length > 0;
+
+                    html += `
+                        <div class="profile-day-item ${hasSession ? 'has-session' : 'rest-day'}">
+                            <div class="day-icon">
+                                <i class="fas ${icons[jour]}"></i>
+                            </div>
+                            <div class="day-info">
+                                <strong>${capitalizeFirstLetter(jour)}</strong>
+                                ${hasSession ? `<br><small>${session.exercises.length} exercice(s)</small>` : '<br><small>Jour de repos</small>'}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement du planning:', error);
+            container.innerHTML = '<p class="text-danger">Erreur de chargement</p>';
+        });
+}
+
+function loadMuscleGroupsStats() {
+    const userId = localStorage.getItem('userId');
+    const container = document.getElementById('muscle-groups-chart');
+
+    if (!userId || !container) return;
+
+    fetch(`/weekly-plan/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            const muscleStats = {};
+
+            // Compter les exercices par groupe musculaire
+            Object.values(data).forEach(session => {
+                if (session && session.exercises) {
+                    session.exercises.forEach(ex => {
+                        muscleStats[ex.muscle] = (muscleStats[ex.muscle] || 0) + 1;
+                    });
+                }
+            });
+
+            if (Object.keys(muscleStats).length === 0) {
+                container.innerHTML = '<p class="text-muted">Aucun exercice programmé</p>';
+                return;
+            }
+
+            let html = '';
+            Object.entries(muscleStats).forEach(([muscle, count]) => {
+                const percentage = Math.round((count / Object.values(muscleStats).reduce((a, b) => a + b, 0)) * 100);
+                html += `
+                    <div class="muscle-group-item">
+                        <div class="muscle-info">
+                            <span class="muscle-name">${muscle}</span>
+                            <span class="muscle-count">${count} ex.</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des statistiques:', error);
+            container.innerHTML = '<p class="text-danger">Erreur de chargement</p>';
+        });
+}
+
+function loadSessionHistory() {
+    const userId = localStorage.getItem('userId');
+    const container = document.getElementById('session-history');
+
+    if (!userId || !container) return;
+
+    // Pour l'instant, on simule un historique simple
+    // Dans une vraie application, cela viendrait du serveur
+    container.innerHTML = `
+        <div class="history-item">
+            <i class="fas fa-clock"></i>
+            <div class="history-content">
+                <strong>Dernière connexion</strong>
+                <small>${new Date().toLocaleString('fr-FR')}</small>
+            </div>
+        </div>
+        <div class="history-item">
+            <i class="fas fa-plus-circle"></i>
+            <div class="history-content">
+                <strong>Programme créé</strong>
+                <small>Il y a 2 jours</small>
+            </div>
+        </div>
+        <div class="history-item">
+            <i class="fas fa-calendar-check"></i>
+            <div class="history-content">
+                <strong>Planning mis à jour</strong>
+                <small>Il y a 1 semaine</small>
+            </div>
+        </div>
+    `;
+}
+
+// ==========================================
+// UTILITAIRES
+// ==========================================
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }
