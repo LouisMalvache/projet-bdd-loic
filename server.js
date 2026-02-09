@@ -192,15 +192,15 @@ app.get('/weekly-plan/:userId', (req, res) => {
             }
             
             // Convertir les exercices JSON en objets JavaScript
-            const weeklyPlan = {};
+            const seancesSemaine = {};
             results.forEach(session => {
-                weeklyPlan[session.day] = {
+                seancesSemaine[session.day] = {
                     exercises: JSON.parse(session.exercises),
                     savedDate: session.savedDate
                 };
             });
             
-            res.json(weeklyPlan);
+            res.json(seancesSemaine);
         }
     );
 });

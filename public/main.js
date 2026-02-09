@@ -1,51 +1,52 @@
 // ==========================================
-// FITAPP - APPLICATION UNIFIÉE
+// FITAPP - APPLICATION DE MUSCULATION
 // ==========================================
 
-// Variables globales
-let customSelectedExercises = [];
-let weeklyPlan = {
+// Variables globales (données de l'app)
+let mesExercicesChoisis = [];
+let monPlanningHebdo = {
     lundi: null, mardi: null, mercredi: null, jeudi: null,
     vendredi: null, samedi: null, dimanche: null
 };
-let selectedDay = null;
-let currentSection = 'accueil';
+let jourSelectionne = null;
+let sectionActive = 'accueil';
 
 // ==========================================
-// GESTION DES SECTIONS
+// GESTION DES PAGES DE L'APPLICATION
 // ==========================================
 
-function showSection(sectionName) {
-    // Masquer toutes les sections
-    const sections = document.querySelectorAll('.content-section');
-    sections.forEach(section => section.classList.remove('active'));
+// Fonction pour afficher une page de l'app
+function afficherSection(nomSection) {
+    // On cache toutes les sections (pages)
+    const toutesLesSections = document.querySelectorAll('.content-section');
+    toutesLesSections.forEach(section => section.classList.remove('active'));
 
-    // Masquer la section active
-    const activeSection = document.querySelector('.content-section.active');
-    if (activeSection) {
-        activeSection.classList.remove('active');
+    // On cache la section qui était affichée avant
+    const sectActuelle = document.querySelector('.content-section.active');
+    if (sectActuelle) {
+        sectActuelle.classList.remove('active');
     }
 
-    // Afficher la section demandée
-    const targetSection = document.getElementById(sectionName + '-section');
-    if (targetSection) {
-        targetSection.classList.add('active');
-        currentSection = sectionName;
+    // On affiche la nouvelle section
+    const nouvellePage = document.getElementById(nomSection + '-section');
+    if (nouvellePage) {
+        nouvellePage.classList.add('active');
+        sectionActive = nomSection;
     }
 
-    // Mettre à jour la navigation
-    updateNavigation(sectionName);
+    // On met à jour le menu de navigation
+    mettreAJourNavigation(nomSection);
 
-    // Actions spécifiques selon la section
-    switch(sectionName) {
+    // On lance les fonctions spéciales selon la page
+    switch(nomSection) {
         case 'planning':
-            initWeeklyPlanning();
+            initialiserPlanningHebdo();
             break;
         case 'programme':
-            initExerciseSelection();
+            initialiserSelectionExercices();
             break;
         case 'profil':
-            initProfilePage();
+            initialiserPageProfil();
             break;
         case 'accueil':
             // Rien de spécial pour l'accueil
@@ -53,273 +54,299 @@ function showSection(sectionName) {
     }
 }
 
-function updateNavigation(activeSection) {
-    // Mettre à jour les classes actives dans la navbar
-    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
-    navLinks.forEach(link => link.classList.remove('active'));
 
-    const activeLink = document.querySelector(`[href="#${activeSection}"]`);
-    if (activeLink) {
-        activeLink.classList.add('active');
+// Fonction pour mettre à jour le menu (navbar)
+function mettreAJourNavigation(sectionActive) {
+    // On enlève la classe "active" de tous les boutons du menu
+    const boutons = document.querySelectorAll('.navbar-nav .nav-link');
+    boutons.forEach(btn => btn.classList.remove('active'));
+
+    // On ajoute la classe "active" au bouton qui correspond à la page actuelle
+    const boutonActif = document.querySelector(`[href="#${sectionActive}"]`);
+    if (boutonActif) {
+        boutonActif.classList.add('active');
     }
 }
 
 // ==========================================
-// AUTHENTIFICATION
+// GESTION DE LA CONNEXION / INSCRIPTION
 // ==========================================
 
-const loginInput = document.getElementById('loginInput');
-const passwordInput = document.getElementById('passwordInput');
-const registerButton = document.getElementById('registerButton');
-const loginButton = document.getElementById('loginButton');
+// Fonction pour initialiser les boutons de connexion
+function initialiserBoutonsConnexion() {
+    const champNom = document.getElementById('loginInput');
+    const champMotDePasse = document.getElementById('passwordInput');
+    const boutonInscrire = document.getElementById('registerButton');
+    const boutonConnecter = document.getElementById('loginButton');
 
-// Inscription
-registerButton.addEventListener('click', () => {
-    fetch('/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            login: loginInput.value,
-            password: passwordInput.value
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message);
-        if (data.success) {
-            document.getElementById('loginInput').value = loginInput.value;
-            document.getElementById('loginButton').click();
-        } else {
-            window.location.reload();
-        }
-    })
-    .catch(error => {
-        console.error('Erreur lors de l\'inscription:', error);
-        alert('Erreur lors de l\'inscription');
-    });
-});
-
-// Connexion
-loginButton.addEventListener('click', () => {
-    const login = loginInput.value;
-    const password = passwordInput.value;
-
-    if (!login || !password) {
-        alert('Veuillez remplir tous les champs');
+    if (!champNom || !champMotDePasse || !boutonInscrire || !boutonConnecter) {
+        console.error('Erreur : éléments de connexion non trouvés');
         return;
     }
 
-    fetch('/connexion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success !== false) {
+    // Bouton d'inscription
+    boutonInscrire.addEventListener('click', () => {
+        // On envoie les données au serveur pour créer un compte
+        fetch('/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                login: champNom.value,
+                password: champMotDePasse.value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
             alert(data.message);
-            localStorage.setItem('userId', data.user.id);
-            localStorage.setItem('userLogin', login);
-
-            // Mettre à jour l'interface
-            updateAuthUI(login);
-
-            // Fermer le dropdown
-            document.getElementById('loginSection').style.display = 'none';
-
-            // Vider les champs
-            loginInput.value = '';
-            passwordInput.value = '';
-
-            // Actualiser les sections qui dépendent de l'authentification
-            if (currentSection === 'profil') {
-                initProfilePage();
+            if (data.success) {
+                // Si l'inscription réussit, on se connecte automatiquement
+                document.getElementById('loginInput').value = champNom.value;
+                document.getElementById('loginButton').click();
+            } else {
+                window.location.reload();
             }
-        } else {
-            alert(data.message || 'Erreur de connexion');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur lors de la connexion:', error);
-        alert('Erreur lors de la connexion');
+        })
+        .catch(error => {
+            console.error('Erreur lors de l\'inscription:', error);
+            alert('Erreur lors de l\'inscription');
+        });
     });
-});
 
-// Déconnexion
-function deconnecter() {
+    // Bouton de connexion
+    boutonConnecter.addEventListener('click', () => {
+        const nom = champNom.value;
+        const motDePasse = champMotDePasse.value;
+
+        // On vérifie que les deux champs sont remplis
+        if (!nom || !motDePasse) {
+            alert('Veuillez remplir tous les champs');
+            return;
+        }
+
+        // On envoie les données au serveur pour se connecter
+        fetch('/connexion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ login: nom, password: motDePasse })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success !== false) {
+                alert(data.message);
+                // On sauvegarde l'ID de l'utilisateur et son nom
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userLogin', nom);
+
+                // On met à jour l'interface
+                mettreAJourInterfaceConnexion(nom);
+
+                // On ferme la boîte de connexion
+                document.getElementById('loginSection').style.display = 'none';
+
+                // On vide les champs
+                champNom.value = '';
+                champMotDePasse.value = '';
+
+                // On recharge la page profil si elle est affichée
+                if (sectionActive === 'profil') {
+                    initialiserPageProfil();
+                }
+            } else {
+                alert(data.message || 'Erreur de connexion');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la connexion:', error);
+            alert('Erreur lors de la connexion');
+        });
+    });
+}
+
+// Bouton de déconnexion
+function seDeconnecter() {
+    // On supprime les données de l'utilisateur
     localStorage.removeItem('userId');
     localStorage.removeItem('userLogin');
 
-    // Réinitialiser l'interface
-    updateAuthUI(null);
+    // On met à jour l'interface
+    mettreAJourInterfaceConnexion(null);
 
-    // Fermer le dropdown
+    // On ferme la boîte de connexion
     document.getElementById('loginSection').style.display = 'none';
 
-    // Masquer les statistiques rapides
+    // On cache les statistiques
     document.getElementById('quick-stats').style.display = 'none';
 
-    // Recharger la page pour réinitialiser complètement
+    // On recharge la page
     window.location.reload();
 }
 
-function updateAuthUI(userLogin) {
-    const toggleButton = document.getElementById('toggleLoginButton');
-    const connectedUserBadge = document.getElementById('connectedUserBadge');
-    const connectedUser = document.getElementById('connectedUser');
+// Fonction pour mettre à jour l'interface selon la connexion
+function mettreAJourInterfaceConnexion(nomUtilisateur) {
+    const boutonOuvrirConnexion = document.getElementById('toggleLoginButton');
+    const badigeUtilisateur = document.getElementById('connectedUserBadge');
+    const nomAffiche = document.getElementById('connectedUser');
 
-    if (userLogin) {
-        connectedUser.textContent = userLogin;
-        connectedUserBadge.style.display = 'inline-flex';
-        toggleButton.style.display = 'none';
+    if (nomUtilisateur) {
+        // L'utilisateur est connecté
+        nomAffiche.textContent = nomUtilisateur;
+        badigeUtilisateur.style.display = 'inline-flex';
+        boutonOuvrirConnexion.style.display = 'none';
     } else {
-        connectedUser.textContent = '';
-        connectedUserBadge.style.display = 'none';
-        toggleButton.style.display = 'inline-flex';
+        // L'utilisateur est déconnecté
+        nomAffiche.textContent = '';
+        badigeUtilisateur.style.display = 'none';
+        boutonOuvrirConnexion.style.display = 'inline-flex';
     }
 }
 
-function showLogin() {
+function afficherFormulaire() {
     document.getElementById('loginSection').style.display = 'block';
 }
 
 // ==========================================
-// INITIALISATION AU CHARGEMENT
+// INITIALISATION AU DÉMARRAGE
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialiser la navigation
-    initNavigation();
+    // On initialise les boutons de connexion
+    initialiserBoutonsConnexion();
 
-    // Vérifier l'état de connexion
-    const userId = localStorage.getItem('userId');
-    const userLogin = localStorage.getItem('userLogin');
+    // On initialise le menu de navigation
+    initialiserNavigation();
 
-    if (userId && userLogin) {
-        updateAuthUI(userLogin);
+    // On vérifie si l'utilisateur était connecté avant
+    const idUtilisateur = localStorage.getItem('userId');
+    const nomUtilisateur = localStorage.getItem('userLogin');
+
+    if (idUtilisateur && nomUtilisateur) {
+        mettreAJourInterfaceConnexion(nomUtilisateur);
     }
 
-    // Afficher la section d'accueil par défaut
-    showSection('accueil');
+    // On affiche la page d'accueil
+    afficherSection('accueil');
 });
 
-function initNavigation() {
-    // Toggle du dropdown de connexion
-    const toggleButton = document.getElementById('toggleLoginButton');
-    const loginSection = document.getElementById('loginSection');
+// Fonction pour initialiser le menu
+function initialiserNavigation() {
+    // Gestion du bouton de connexion
+    const boutonOuvrir = document.getElementById('toggleLoginButton');
+    const formuConexion = document.getElementById('loginSection');
 
-    if (toggleButton && loginSection) {
-        toggleButton.addEventListener('click', () => {
-            loginSection.style.display = loginSection.style.display === 'none' ? 'block' : 'none';
+    if (boutonOuvrir && formuConexion) {
+        boutonOuvrir.addEventListener('click', () => {
+            formuConexion.style.display = formuConexion.style.display === 'none' ? 'block' : 'none';
         });
 
-        // Fermer le dropdown si on clique en dehors
+        // On ferme la boîte si on clique en dehors
         document.addEventListener('click', function(event) {
-            const isClickInside = loginSection.contains(event.target) ||
-                                 toggleButton.contains(event.target);
+            const clicDedans = formuConexion.contains(event.target) ||
+                              boutonOuvrir.contains(event.target);
 
-            if (!isClickInside && loginSection.style.display === 'block') {
-                loginSection.style.display = 'none';
+            if (!clicDedans && formuConexion.style.display === 'block') {
+                formuConexion.style.display = 'none';
             }
         });
     }
 }
 
 // ==========================================
-// STATISTIQUES RAPIDES (ACCUEIL)
+// STATISTIQUES RAPIDES (PAGE ACCUEIL)
 // ==========================================
 
-function updateQuickStats() {
-    const userId = localStorage.getItem('userId');
-    const quickStats = document.getElementById('quick-stats');
+function mettreAJourStatsRapides() {
+    const idUtilisateur = localStorage.getItem('userId');
+    const statsRapides = document.getElementById('quick-stats');
 
-    if (!userId) {
-        quickStats.style.display = 'none';
+    if (!idUtilisateur) {
+        statsRapides.style.display = 'none';
         return;
     }
 
-    // Charger les données du planning
-    fetch(`/weekly-plan/${userId}`)
+    // On récupère le planning du serveur
+    fetch(`/weekly-plan/${idUtilisateur}`)
         .then(response => response.json())
         .then(data => {
-            let totalSessions = 0;
-            let totalExercises = 0;
-            const muscleGroups = new Set();
+            let totalSeances = 0;
+            let totalExos = 0;
+            const groupesMusculaires = new Set();
 
-            Object.values(data).forEach(session => {
-                if (session && session.exercises) {
-                    totalSessions++;
-                    totalExercises += session.exercises.length;
-                    session.exercises.forEach(ex => muscleGroups.add(ex.muscle));
+            // On compte les séances et les exercices
+            Object.values(data).forEach(seance => {
+                if (seance && seance.exercises) {
+                    totalSeances++;
+                    totalExos += seance.exercises.length;
+                    seance.exercises.forEach(ex => groupesMusculaires.add(ex.muscle));
                 }
             });
 
-            // Mettre à jour l'affichage
-            document.getElementById('total-sessions').textContent = totalSessions;
-            document.getElementById('total-exercises').textContent = totalExercises;
-            document.getElementById('muscle-groups').textContent = muscleGroups.size;
+            // On affiche les résultats
+            document.getElementById('total-sessions').textContent = totalSeances;
+            document.getElementById('total-exercises').textContent = totalExos;
+            document.getElementById('muscle-groups').textContent = groupesMusculaires.size;
 
-            quickStats.style.display = 'block';
+            statsRapides.style.display = 'block';
         })
         .catch(error => {
             console.error('Erreur lors du chargement des statistiques:', error);
-            quickStats.style.display = 'none';
+            statsRapides.style.display = 'none';
         });
 }
 
 // ==========================================
-// PLANNING HEBDOMADAIRE
+// PLANNING HEBDOMADAIRE (SEMAINE)
 // ==========================================
 
-function initWeeklyPlanning() {
-    const weeklyOverview = document.getElementById('weekly-overview');
-    const dayDetails = document.getElementById('day-details');
-    const selectedDayTitle = document.getElementById('selected-day-title');
-    const btnModifySession = document.getElementById('btn-modify-session');
-    const btnCloseDay = document.getElementById('btn-close-day');
+function initialiserPlanningHebdo() {
+    const apercuSemaine = document.getElementById('weekly-overview');
+    const detailsJour = document.getElementById('day-details');
+    const titreJour = document.getElementById('selected-day-title');
+    const boutonModifier = document.getElementById('btn-modify-session');
+    const boutonFermer = document.getElementById('btn-close-day');
 
-    // Charger le planning
-    loadWeeklyPlan();
+    // On charge le planning depuis le serveur
+    chargerPlanningHebdo();
 
-    // Gestion des clics sur les jours dans l'aperçu
-    weeklyOverview.addEventListener('click', (e) => {
-        const dayCard = e.target.closest('.weekly-day-card');
-        if (dayCard) {
-            const day = dayCard.dataset.day;
-            selectedDay = day;
-            displayDayDetails(day);
+    // Si on clique sur un jour, on affiche ses détails
+    apercuSemaine.addEventListener('click', (e) => {
+        const carteJour = e.target.closest('.weekly-day-card');
+        if (carteJour) {
+            const jour = carteJour.dataset.day;
+            jourSelectionne = jour;
+            afficherDetailsJour(jour);
         }
     });
 
-    btnModifySession.addEventListener('click', () => {
-        // Aller à la section programme pour modifier
-        showSection('programme');
+    // Bouton pour modifier la séance du jour
+    boutonModifier.addEventListener('click', () => {
+        afficherSection('programme');
     });
 
-    btnCloseDay.addEventListener('click', () => {
-        dayDetails.style.display = 'none';
-        selectedDay = null;
+    // Bouton pour fermer les détails
+    boutonFermer.addEventListener('click', () => {
+        detailsJour.style.display = 'none';
+        jourSelectionne = null;
     });
 }
 
-function displayDayDetails(day) {
-    const dayDetails = document.getElementById('day-details');
-    const selectedDayTitle = document.getElementById('selected-day-title');
-    const savedSessionDisplay = document.getElementById('saved-session-display');
+function afficherDetailsJour(jour) {
+    const detailsJour = document.getElementById('day-details');
+    const titreJour = document.getElementById('selected-day-title');
 
-    selectedDayTitle.innerHTML = `<i class="fas fa-calendar-day"></i> Séance du ${capitalizeFirstLetter(day)}`;
-    displaySavedSession(day);
-    dayDetails.style.display = 'block';
+    titreJour.innerHTML = `<i class="fas fa-calendar-day"></i> Séance du ${mettreEnMajuscule(jour)}`;
+    afficherSeanceSauveegardee(jour);
+    detailsJour.style.display = 'block';
 }
 
-function loadWeeklyPlan() {
-    const userId = localStorage.getItem('userId');
-    if (!userId) return;
+function chargerPlanningHebdo() {
+    const idUtilisateur = localStorage.getItem('userId');
+    if (!idUtilisateur) return;
 
-    fetch(`/weekly-plan/${userId}`)
+    // On récupère le planning depuis le serveur
+    fetch(`/weekly-plan/${idUtilisateur}`)
         .then(response => response.json())
         .then(data => {
-            weeklyPlan = {
+            monPlanningHebdo = {
                 lundi: data.lundi || null,
                 mardi: data.mardi || null,
                 mercredi: data.mercredi || null,
@@ -328,7 +355,7 @@ function loadWeeklyPlan() {
                 samedi: data.samedi || null,
                 dimanche: data.dimanche || null
             };
-            updateWeeklyOverview();
+            afficherApercuSemaine();
         })
         .catch(error => {
             console.error('Erreur lors du chargement du planning:', error);
@@ -336,17 +363,18 @@ function loadWeeklyPlan() {
         });
 }
 
-function deleteSession(day) {
-    if (confirm(`Voulez-vous vraiment supprimer la séance du ${day} ?`)) {
-        const userId = localStorage.getItem('userId');
+function supprimerSeance(jour) {
+    if (confirm(`Voulez-vous vraiment supprimer la séance du ${jour} ?`)) {
+        const idUtilisateur = localStorage.getItem('userId');
 
-        fetch(`/delete-session/${userId}/${day}`, { method: 'DELETE' })
+        // On envoie la requête de suppression au serveur
+        fetch(`/delete-session/${idUtilisateur}/${jour}`, { method: 'DELETE' })
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                weeklyPlan[day] = null;
-                displaySavedSession(day);
-                updateWeeklyOverview();
+                monPlanningHebdo[jour] = null;
+                afficherSeanceSauveegardee(jour);
+                afficherApercuSemaine();
             })
             .catch(error => {
                 console.error('Erreur lors de la suppression:', error);
@@ -355,16 +383,16 @@ function deleteSession(day) {
     }
 }
 
-function displaySavedSession(day) {
-    const savedSessionDisplay = document.getElementById('saved-session-display');
-    const session = weeklyPlan[day];
+function afficherSeanceSauveegardee(jour) {
+    const affichageSeance = document.getElementById('saved-session-display');
+    const seance = monPlanningHebdo[jour];
 
-    if (!session || !session.exercises || session.exercises.length === 0) {
-        savedSessionDisplay.innerHTML = `
+    if (!seance || !seance.exercises || seance.exercises.length === 0) {
+        affichageSeance.innerHTML = `
             <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
                 <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                 <p>Aucune séance enregistrée pour ce jour</p>
-                <button onclick="showSection('programme')" class="btn-capture">
+                <button onclick="afficherSection('programme')" class="btn-capture">
                     <i class="fas fa-plus"></i> Créer un programme
                 </button>
             </div>
@@ -372,7 +400,8 @@ function displaySavedSession(day) {
         return;
     }
 
-    const grouped = session.exercises.reduce((acc, ex) => {
+    // On regroupe les exercices par groupe musculaire
+    const groupes = seance.exercises.reduce((acc, ex) => {
         if (!acc[ex.muscle]) acc[ex.muscle] = [];
         acc[ex.muscle].push(ex);
         return acc;
@@ -380,12 +409,12 @@ function displaySavedSession(day) {
 
     let html = `
         <div class="session-preview">
-            <h4><i class="fas fa-dumbbell"></i> ${session.exercises.length} exercice(s) programmé(s)</h4>
+            <h4><i class="fas fa-dumbbell"></i> ${seance.exercises.length} exercice(s) programmé(s)</h4>
     `;
 
-    Object.entries(grouped).forEach(([muscle, exercises]) => {
+    Object.entries(groupes).forEach(([muscle, exercices]) => {
         html += `<div style="margin-top: 1rem;"><strong style="color: var(--primary-color);">${muscle}:</strong><br>`;
-        exercises.forEach(ex => {
+        exercices.forEach(ex => {
             html += `
                 <div class="exercise-item">
                     <img src="${ex.image}" width="60" style="border-radius: 8px;">
@@ -397,18 +426,18 @@ function displaySavedSession(day) {
     });
 
     html += `
-            <button class="btn-delete-session" onclick="deleteSession('${day}')">
+            <button class="btn-delete-session" onclick="supprimerSeance('${jour}')">
                 <i class="fas fa-trash"></i> Supprimer cette séance
             </button>
         </div>
     `;
 
-    savedSessionDisplay.innerHTML = html;
+    affichageSeance.innerHTML = html;
 }
 
-function updateWeeklyOverview() {
-    const overview = document.getElementById('weekly-overview');
-    if (!overview) return;
+function afficherApercuSemaine() {
+    const apercu = document.getElementById('weekly-overview');
+    if (!apercu) return;
 
     let html = '';
     const jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
@@ -418,39 +447,40 @@ function updateWeeklyOverview() {
     };
 
     jours.forEach(jour => {
-        const session = weeklyPlan[jour];
-        const hasSession = session && session.exercises && session.exercises.length > 0;
+        const seance = monPlanningHebdo[jour];
+        const aUneSeance = seance && seance.exercises && seance.exercises.length > 0;
 
         html += `
-            <div class="weekly-day-card ${!hasSession ? 'rest-day' : ''}" data-day="${jour}">
+            <div class="weekly-day-card ${!aUneSeance ? 'rest-day' : ''}" data-day="${jour}">
                 <div class="day-header">
                     <i class="fas ${icons[jour]}"></i>
-                    <h4>${capitalizeFirstLetter(jour)}</h4>
+                    <h4>${mettreEnMajuscule(jour)}</h4>
                 </div>
-                ${hasSession ? 
-                    `<p>${session.exercises.length} exercice(s)</p>
+                ${aUneSeance ? 
+                    `<p>${seance.exercises.length} exercice(s)</p>
                      <div class="muscle-groups">
-                         ${[...new Set(session.exercises.map(ex => ex.muscle))].join(', ')}
+                         ${[...new Set(seance.exercises.map(ex => ex.muscle))].join(', ')}
                      </div>` : 
                     '<p>Jour de repos</p>'}
             </div>
         `;
     });
 
-    overview.innerHTML = html;
+    apercu.innerHTML = html;
 }
 
 // ==========================================
-// SÉLECTION D'EXERCICES
+// SÉLECTION D'EXERCICES (CRÉER UN PROGRAMME)
 // ==========================================
 
-function initExerciseSelection() {
-    const exerciseSelection = document.getElementById("exercise-selection");
-    const saveProgram = document.getElementById("save-program");
+function initialiserSelectionExercices() {
+    const selectionExercice = document.getElementById("exercise-selection");
+    const sauvegarderProgramme = document.getElementById("save-program");
 
-    if (!exerciseSelection || !saveProgram) return;
+    if (!selectionExercice || !sauvegarderProgramme) return;
 
-    const exercisesByMuscle = {
+    // On définit tous les exercices disponibles par groupe musculaire
+    const exercicesParMuscle = {
         "Épaules": [
             { name: "Développé militaire", image: "img/Le-Developpe-Militaire.gif" },
             { name: "Élévations frontales", image: "img/elevation-frontale.gif" },
@@ -509,121 +539,127 @@ function initExerciseSelection() {
         ]
     };
 
-    const container = document.getElementById("exercises-container");
-    const counterText = document.getElementById("counter-text");
-    const counterBox = document.getElementById("exercise-counter");
-    const btnReset = document.getElementById("btn-reset");
-    const btnSaveProgram = document.getElementById("btn-save-program");
-    const btnBackSelection = document.getElementById("btn-back-selection");
-    const saveDayButtons = document.getElementById("save-day-buttons");
-    const btnValidate = document.getElementById("btn-validate");
+    const conteneur = document.getElementById("exercises-container");
+    const textCompteur = document.getElementById("counter-text");
+    const boiteCompteur = document.getElementById("exercise-counter");
+    const boutonReset = document.getElementById("btn-reset");
+    const boutonSauvegarder = document.getElementById("btn-save-program");
+    const boutonRetour = document.getElementById("btn-back-selection");
+    const boutonsJour = document.getElementById("save-day-buttons");
+    const boutonValider = document.getElementById("btn-validate");
 
-    let selectedDayForSave = null;
+    let jourChoisPourSauv = null;
 
-    function renderExercises() {
-        container.innerHTML = "";
-        Object.entries(exercisesByMuscle).forEach(([muscle, exercises]) => {
+    // Fonction pour afficher tous les exercices
+    function afficherExercices() {
+        conteneur.innerHTML = "";
+        Object.entries(exercicesParMuscle).forEach(([muscle, exercices]) => {
             const section = document.createElement("section");
             section.innerHTML = `<h3>${muscle}</h3>`;
 
-            const grid = document.createElement("div");
-            grid.className = "d-flex flex-wrap justify-content-center";
+            const grille = document.createElement("div");
+            grille.className = "d-flex flex-wrap justify-content-center";
 
-            exercises.forEach(ex => {
-                const selected = customSelectedExercises.some(sel => sel.name === ex.name);
-                const card = document.createElement("div");
-                card.className = `card m-2 p-2 exercise-card ${selected ? "border border-warning" : ""}`;
-                card.style.width = "180px";
-                card.style.cursor = "pointer";
-                card.innerHTML = `
+            exercices.forEach(ex => {
+                const estSelectionnee = mesExercicesChoisis.some(sel => sel.name === ex.name);
+                const carte = document.createElement("div");
+                carte.className = `card m-2 p-2 exercise-card ${estSelectionnee ? "border border-warning" : ""}`;
+                carte.style.width = "180px";
+                carte.style.cursor = "pointer";
+                carte.innerHTML = `
                     <img src="${ex.image}" class="card-img-top" alt="${ex.name}">
                     <div class="card-body text-center"><p>${ex.name}</p></div>
                 `;
-                card.addEventListener("click", () => toggleExercise(ex, muscle));
-                grid.appendChild(card);
+                carte.addEventListener("click", () => basculerExercice(ex, muscle));
+                grille.appendChild(carte);
             });
 
-            section.appendChild(grid);
-            container.appendChild(section);
+            section.appendChild(grille);
+            conteneur.appendChild(section);
         });
     }
 
-    function toggleExercise(ex, muscle) {
-        const index = customSelectedExercises.findIndex(e => e.name === ex.name);
+    // Fonction pour ajouter/enlever un exercice de la sélection
+    function basculerExercice(ex, muscle) {
+        const index = mesExercicesChoisis.findIndex(e => e.name === ex.name);
         if (index >= 0) {
-            customSelectedExercises.splice(index, 1);
+            mesExercicesChoisis.splice(index, 1);
         } else {
-            customSelectedExercises.push({ ...ex, muscle });
+            mesExercicesChoisis.push({ ...ex, muscle });
         }
-        updateUI();
+        mettreAJourInterface();
     }
 
-    function updateUI() {
-        counterText.textContent = `${customSelectedExercises.length} exercice${customSelectedExercises.length > 1 ? "s" : ""} sélectionné${customSelectedExercises.length > 1 ? "s" : ""}`;
-        counterBox.style.display = customSelectedExercises.length ? "block" : "none";
-        btnReset.style.display = customSelectedExercises.length ? "inline-block" : "none";
+    // Fonction pour mettre à jour l'interface
+    function mettreAJourInterface() {
+        textCompteur.textContent = `${mesExercicesChoisis.length} exercice${mesExercicesChoisis.length > 1 ? "s" : ""} sélectionné${mesExercicesChoisis.length > 1 ? "s" : ""}`;
+        boiteCompteur.style.display = mesExercicesChoisis.length ? "block" : "none";
+        boutonReset.style.display = mesExercicesChoisis.length ? "inline-block" : "none";
 
-        if (customSelectedExercises.length > 0) {
+        if (mesExercicesChoisis.length > 0) {
             document.getElementById("btn-validate").style.display = "inline-block";
         } else {
             document.getElementById("btn-validate").style.display = "none";
         }
     }
 
-    // Bouton pour aller à la sauvegarde
-    btnValidate.addEventListener("click", () => {
-        if (customSelectedExercises.length === 0) return;
-        exerciseSelection.style.display = "none";
-        saveProgram.style.display = "block";
+    // Bouton pour valider et aller à la sauvegarde
+    boutonValider.addEventListener("click", () => {
+        if (mesExercicesChoisis.length === 0) return;
+        selectionExercice.style.display = "none";
+        sauvegarderProgramme.style.display = "block";
     });
 
-    btnReset.addEventListener("click", resetSelection);
+    // Bouton pour réinitialiser la sélection
+    boutonReset.addEventListener("click", reinitialiserSelection);
 
-    function resetSelection() {
+    function reinitialiserSelection() {
         if (confirm("Supprimer toutes les sélections ?")) {
-            customSelectedExercises = [];
-            updateUI();
+            mesExercicesChoisis = [];
+            mettreAJourInterface();
         }
     }
 
-    // Gestion des jours pour sauvegarde
-    saveDayButtons.addEventListener("click", (e) => {
+    // Gestion du choix du jour pour sauvegarde
+    boutonsJour.addEventListener("click", (e) => {
         if (e.target.closest(".day-btn")) {
             const btn = e.target.closest(".day-btn");
-            saveDayButtons.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+            boutonsJour.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            selectedDayForSave = btn.dataset.day;
-            btnSaveProgram.disabled = false;
+            jourChoisPourSauv = btn.dataset.day;
+            boutonSauvegarder.disabled = false;
         }
     });
 
-    btnSaveProgram.addEventListener("click", () => {
-        if (!selectedDayForSave || customSelectedExercises.length === 0) return;
+    // Bouton pour enregistrer le programme
+    boutonSauvegarder.addEventListener("click", () => {
+        if (!jourChoisPourSauv || mesExercicesChoisis.length === 0) return;
 
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
+        const idUtilisateur = localStorage.getItem('userId');
+        if (!idUtilisateur) {
             alert('Vous devez être connecté pour enregistrer un planning');
             return;
         }
 
+        // On envoie les données au serveur
         fetch('/save-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: userId,
-                day: selectedDayForSave,
-                exercises: customSelectedExercises
+                userId: idUtilisateur,
+                day: jourChoisPourSauv,
+                exercises: mesExercicesChoisis
             })
         })
         .then(response => response.json())
         .then(data => {
-            alert(`Programme enregistré pour le ${selectedDayForSave} !`);
-            customSelectedExercises = [];
-            selectedDayForSave = null;
-            saveProgram.style.display = "none";
-            exerciseSelection.style.display = "block";
-            updateUI();
-            loadWeeklyPlan(); // Recharger le planning
+            alert(`Programme enregistré pour le ${jourChoisPourSauv} !`);
+            mesExercicesChoisis = [];
+            jourChoisPourSauv = null;
+            sauvegarderProgramme.style.display = "none";
+            selectionExercice.style.display = "block";
+            mettreAJourInterface();
+            chargerPlanningHebdo(); // On recharge le planning
         })
         .catch(error => {
             console.error('Erreur lors de la sauvegarde:', error);
@@ -631,57 +667,59 @@ function initExerciseSelection() {
         });
     });
 
-    btnBackSelection.addEventListener("click", () => {
-        saveProgram.style.display = "none";
-        exerciseSelection.style.display = "block";
-        selectedDayForSave = null;
-        saveDayButtons.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
-        btnSaveProgram.disabled = true;
+    // Bouton pour revenir à la sélection
+    boutonRetour.addEventListener("click", () => {
+        sauvegarderProgramme.style.display = "none";
+        selectionExercice.style.display = "block";
+        jourChoisPourSauv = null;
+        boutonsJour.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+        boutonSauvegarder.disabled = true;
     });
 
-    renderExercises();
+    afficherExercices();
 }
 
 // ==========================================
-// PAGE PROFIL
+// PAGE PROFIL (MES INFORMATIONS)
 // ==========================================
 
-function initProfilePage() {
-    const userId = localStorage.getItem('userId');
-    const userLogin = localStorage.getItem('userLogin');
+function initialiserPageProfil() {
+    const idUtilisateur = localStorage.getItem('userId');
+    const nomUtilisateur = localStorage.getItem('userLogin');
 
-    const notConnectedMessage = document.getElementById('not-connected-message');
-    const profileContent = document.getElementById('profile-content');
+    const messageNonConnecte = document.getElementById('not-connected-message');
+    const contenuProfil = document.getElementById('profile-content');
 
-    if (!userId || !userLogin) {
-        notConnectedMessage.style.display = 'block';
-        profileContent.style.display = 'none';
+    if (!idUtilisateur || !nomUtilisateur) {
+        messageNonConnecte.style.display = 'block';
+        contenuProfil.style.display = 'none';
         return;
     }
 
-    notConnectedMessage.style.display = 'none';
-    profileContent.style.display = 'block';
+    messageNonConnecte.style.display = 'none';
+    contenuProfil.style.display = 'block';
 
-    // Mettre à jour les informations du profil
-    document.getElementById('profile-username').textContent = userLogin;
+    // On affiche les informations du profil
+    document.getElementById('profile-username').textContent = nomUtilisateur;
     document.getElementById('profile-member-since').textContent = new Date().toLocaleDateString('fr-FR');
 
-    // Charger le planning hebdomadaire pour le profil
-    loadWeeklyScheduleForProfile();
+    // On charge le planning pour le profil
+    chargerPlanningSemaineProfil();
 }
 
-function loadWeeklyScheduleForProfile() {
-    const userId = localStorage.getItem('userId');
-    const container = document.getElementById('profile-weekly-schedule');
+function chargerPlanningSemaineProfil() {
+    const idUtilisateur = localStorage.getItem('userId');
+    const conteneur = document.getElementById('profile-weekly-schedule');
 
-    if (!userId || !container) return;
+    if (!idUtilisateur || !conteneur) return;
 
-    fetch(`/weekly-plan/${userId}`)
+    fetch(`/weekly-plan/${idUtilisateur}`)
         .then(response => response.json())
         .then(data => {
             let html = '';
 
-            if (Object.values(data).every(session => !session || !session.exercises || session.exercises.length === 0)) {
+            // On vérifie s'il y a au moins une séance
+            if (Object.values(data).every(seance => !seance || !seance.exercises || seance.exercises.length === 0)) {
                 html = '<p class="text-muted">Aucun planning défini cette semaine</p>';
             } else {
                 const jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
@@ -691,59 +729,59 @@ function loadWeeklyScheduleForProfile() {
                 };
 
                 jours.forEach(jour => {
-                    const session = data[jour];
-                    const hasSession = session && session.exercises && session.exercises.length > 0;
+                    const seance = data[jour];
+                    const aUneSeance = seance && seance.exercises && seance.exercises.length > 0;
 
                     html += `
-                        <div class="profile-day-item ${hasSession ? 'has-session' : 'rest-day'}">
+                        <div class="profile-day-item ${aUneSeance ? 'has-session' : 'rest-day'}">
                             <div class="day-icon">
                                 <i class="fas ${icons[jour]}"></i>
                             </div>
                             <div class="day-info">
-                                <strong>${capitalizeFirstLetter(jour)}</strong>
-                                ${hasSession ? `<br><small>${session.exercises.length} exercice(s)</small>` : '<br><small>Jour de repos</small>'}
+                                <strong>${mettreEnMajuscule(jour)}</strong>
+                                ${aUneSeance ? `<br><small>${seance.exercises.length} exercice(s)</small>` : '<br><small>Jour de repos</small>'}
                             </div>
                         </div>
                     `;
                 });
             }
 
-            container.innerHTML = html;
+            conteneur.innerHTML = html;
         })
         .catch(error => {
             console.error('Erreur lors du chargement du planning:', error);
-            container.innerHTML = '<p class="text-danger">Erreur de chargement</p>';
+            conteneur.innerHTML = '<p class="text-danger">Erreur de chargement</p>';
         });
 }
 
-function loadMuscleGroupsStats() {
-    const userId = localStorage.getItem('userId');
-    const container = document.getElementById('muscle-groups-chart');
+function chargerStatsGroupesMusculaires() {
+    const idUtilisateur = localStorage.getItem('userId');
+    const conteneur = document.getElementById('muscle-groups-chart');
 
-    if (!userId || !container) return;
+    if (!idUtilisateur || !conteneur) return;
 
-    fetch(`/weekly-plan/${userId}`)
+    fetch(`/weekly-plan/${idUtilisateur}`)
         .then(response => response.json())
         .then(data => {
-            const muscleStats = {};
+            const statsMusculaires = {};
 
-            // Compter les exercices par groupe musculaire
-            Object.values(data).forEach(session => {
-                if (session && session.exercises) {
-                    session.exercises.forEach(ex => {
-                        muscleStats[ex.muscle] = (muscleStats[ex.muscle] || 0) + 1;
+            // On compte les exercices par groupe musculaire
+            Object.values(data).forEach(seance => {
+                if (seance && seance.exercises) {
+                    seance.exercises.forEach(ex => {
+                        statsMusculaires[ex.muscle] = (statsMusculaires[ex.muscle] || 0) + 1;
                     });
                 }
             });
 
-            if (Object.keys(muscleStats).length === 0) {
-                container.innerHTML = '<p class="text-muted">Aucun exercice programmé</p>';
+            if (Object.keys(statsMusculaires).length === 0) {
+                conteneur.innerHTML = '<p class="text-muted">Aucun exercice programmé</p>';
                 return;
             }
 
             let html = '';
-            Object.entries(muscleStats).forEach(([muscle, count]) => {
-                const percentage = Math.round((count / Object.values(muscleStats).reduce((a, b) => a + b, 0)) * 100);
+            Object.entries(statsMusculaires).forEach(([muscle, count]) => {
+                const pourcentage = Math.round((count / Object.values(statsMusculaires).reduce((a, b) => a + b, 0)) * 100);
                 html += `
                     <div class="muscle-group-item">
                         <div class="muscle-info">
@@ -751,29 +789,29 @@ function loadMuscleGroupsStats() {
                             <span class="muscle-count">${count} ex.</span>
                         </div>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                            <div class="progress-fill" style="width: ${pourcentage}%"></div>
                         </div>
                     </div>
                 `;
             });
 
-            container.innerHTML = html;
+            conteneur.innerHTML = html;
         })
         .catch(error => {
             console.error('Erreur lors du chargement des statistiques:', error);
-            container.innerHTML = '<p class="text-danger">Erreur de chargement</p>';
+            conteneur.innerHTML = '<p class="text-danger">Erreur de chargement</p>';
         });
 }
 
-function loadSessionHistory() {
-    const userId = localStorage.getItem('userId');
-    const container = document.getElementById('session-history');
+function chargerHistoriqueSeances() {
+    const idUtilisateur = localStorage.getItem('userId');
+    const conteneur = document.getElementById('session-history');
 
-    if (!userId || !container) return;
+    if (!idUtilisateur || !conteneur) return;
 
-    // Pour l'instant, on simule un historique simple
-    // Dans une vraie application, cela viendrait du serveur
-    container.innerHTML = `
+    // Pour l'instant, on affiche un historique simple
+    // Dans une vraie app, ce serait envoyé par le serveur
+    conteneur.innerHTML = `
         <div class="history-item">
             <i class="fas fa-clock"></i>
             <div class="history-content">
@@ -799,9 +837,10 @@ function loadSessionHistory() {
 }
 
 // ==========================================
-// UTILITAIRES
+// FONCTIONS UTILITAIRES
 // ==========================================
 
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+// Fonction pour mettre la première lettre en majuscule
+function mettreEnMajuscule(texte) {
+    return texte.charAt(0).toUpperCase() + texte.slice(1);
 }
