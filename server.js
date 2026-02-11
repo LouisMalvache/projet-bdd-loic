@@ -51,6 +51,8 @@ app.get('/user', (req, res) => {
     });
 });
 
+// inscription FAUT QUE TU GERES POUR EVITER D'AVOIR PLUSIEURS LOGIN IDENTIQUES 
+
 app.post('/register', async (req, res) => {
     console.log('Données reçues pour l\'inscription :');
     console.log(req.body);
@@ -76,6 +78,8 @@ app.post('/register', async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
     }
 });
+
+// connexion
 
 app.post('/connexion', async (req, res) => {  
     console.log(req.body);
