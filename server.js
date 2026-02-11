@@ -3,7 +3,7 @@ const mysql = require('mysql2');
 const path = require('path');
 
 const connection = mysql.createConnection({
-    host: '172.29.18.118',
+    host: 'localhost',  // ou '127.0.0.1'
     user: 'assesNodeServerDemo',
     password: 'assesNodeServerDemo',
     database: 'projet_seances_loic',
