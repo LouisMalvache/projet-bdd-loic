@@ -51,10 +51,18 @@ let champPassword = document.getElementById('passwordInput');
 
 // Inscription
 document.getElementById('registerButton').addEventListener('click', function() {
+    let login = champLogin.value;
+    let password = champPassword.value;
+
+    if (!login || !password) {
+        alert('Remplis tous les champs !');
+        return;
+    }
+    
     fetch('/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: champLogin.value, password: champPassword.value })
+        body: JSON.stringify({ login: login, password: password })
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -67,16 +75,16 @@ document.getElementById('registerButton').addEventListener('click', function() {
     });
 });
 
+
 // Connexion
 document.getElementById('loginButton').addEventListener('click', function() {
     let login = champLogin.value;
     let password = champPassword.value;
-
+    
     if (!login || !password) {
         alert('Remplis tous les champs !');
         return;
     }
-
     fetch('/connexion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

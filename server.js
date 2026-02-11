@@ -1,9 +1,10 @@
 const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const connection = mysql.createConnection({
-    host: 'localhost',  // ou '127.0.0.1'
+    host: 'localhost',  
     user: 'assesNodeServerDemo',
     password: 'assesNodeServerDemo',
     database: 'projet_seances_loic',
@@ -50,36 +51,49 @@ app.get('/user', (req, res) => {
     });
 });
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     console.log('Données reçues pour l\'inscription :');
     console.log(req.body);
-   
-    connection.query(
-        'INSERT INTO user (login, password) VALUES (?, ?)',
-        [req.body.login, req.body.password],
-        (err, results) => {
-            if (err) {
-                console.error('Erreur lors de l\'insertion dans la base de données :', err);
-                res.status(500).json({ message: 'Erreur serveur' });
-                return;
+    
+    try {
+        const motDePasseHache = await bcrypt.hash(req.body.password, 10);// Hacher le mot de passe
+        
+        connection.query(
+            'INSERT INTO user (login, password) VALUES (?, ?)',
+            [req.body.login, motDePasseHache], // ← Utiliser le mot de passe haché
+            (err, results) => {
+                if (err) {
+                    console.error('Erreur lors de l\'insertion dans la base de données :', err);
+                    res.status(500).json({ message: 'Erreur serveur' });
+                    return;
+                }
+                console.log('Inscription réussie, ID utilisateur :', results.insertId);
+                res.json({ message: 'Inscription réussie !', userId: results.insertId, success: true });
             }
-            console.log('Insertion réussie, ID utilisateur :', results.insertId);
-            res.json({ message: 'Inscription réussie !', userId: results.insertId });
-        }
-    );
+        );
+    } catch (error) {
+        console.error('Erreur lors du hachage :', error);
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
 });
 
-app.post('/connexion', (req, res) => {  
+app.post('/connexion', async (req, res) => {  
     console.log(req.body);
     const { login, password } = req.body;
-    connection.query('SELECT * FROM user WHERE login = ? AND password = ?', [login, password], (err, results) => {
-        if (err) {
+    
+    connection.query('SELECT * FROM user WHERE login = ?', [login], async (err, results) => {
+        if (err) {    // Récupérer l'utilisateur par login uniquement
             console.error('Erreur lors de la vérification des identifiants :', err);
             res.status(500).json({ message: 'Erreur serveur' });
             return;
         }
         if (results.length === 0) {
-            res.status(401).json({ message: 'Identifiants invalides' });
+            res.status(401).json({ message: 'Identifiants invalides', success: false });
+            return;
+        }
+        const match = await bcrypt.compare(password, results[0].password);  // Comparer le mot de passe avec le hash
+        if (!match) {
+            res.status(401).json({ message: 'Identifiants invalides', success: false });
             return;
         }
         res.json({ message: 'Connexion réussie !', user: results[0] });
