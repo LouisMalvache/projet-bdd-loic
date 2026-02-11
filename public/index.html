@@ -32,22 +32,22 @@
                 <!-- Navigation principale -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#accueil" onclick="afficherSection('accueil')">
+                        <a class="nav-link active" href="#accueil" onclick="changerPage('accueil')">
                             <i class="fas fa-home"></i> Accueil
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#programme" onclick="afficherSection('programme')">
+                        <a class="nav-link" href="#programme" onclick="changerPage('programme')">
                             <i class="fas fa-plus-circle"></i> Créer Programme
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#planning" onclick="afficherSection('planning')">
+                        <a class="nav-link" href="#planning" onclick="changerPage('planning')">
                             <i class="fas fa-calendar-alt"></i> Mon Planning
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#profil" onclick="afficherSection('profil')">
+                        <a class="nav-link" href="#profil" onclick="changerPage('profil')">
                             <i class="fas fa-user"></i> Profil
                         </a>
                     </li>
@@ -60,7 +60,7 @@
                     </button>
                     <span id="connectedUserBadge" class="user-badge" style="display: none;">
                         <i class="fas fa-user-circle"></i> <span id="connectedUser"></span>
-                        <button onclick="seDeconnecter()" class="btn-logout-mini">
+                        <button onclick="deconnecter()" class="btn-logout-mini">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </span>
@@ -95,10 +95,10 @@
                 <p>Créez votre programme d'entraînement personnalisé et organisez votre semaine</p>
 
                 <div class="hero-actions">
-                    <button onclick="afficherSection('programme')" class="btn-capture">
+                    <button onclick="changerPage('programme')" class="btn-capture">
                         <i class="fas fa-plus-circle"></i> Créer Mon Programme
                     </button>
-                    <button onclick="afficherSection('planning')" class="btn-secondary">
+                    <button onclick="changerPage('planning')" class="btn-secondary">
                         <i class="fas fa-calendar-alt"></i> Voir Mon Planning
                     </button>
                 </div>
@@ -219,7 +219,7 @@
                 <div class="hero-section">
                     <h1><i class="fas fa-user-lock"></i> Accès Refusé</h1>
                     <p>Vous devez être connecté pour accéder à votre profil</p>
-                    <button onclick="afficherFormulaire()" class="btn-capture">
+                    <button onclick="document.getElementById('loginSection').style.display='block'; document.getElementById('toggleLoginButton').click();" class="btn-capture">
                         <i class="fas fa-sign-in-alt"></i> Se connecter
                     </button>
                 </div>

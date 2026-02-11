@@ -1,5 +1,6 @@
 const express = require('express');
 const mysql = require('mysql2');
+const path = require('path');
 
 const connection = mysql.createConnection({
     host: '172.29.18.118',
@@ -8,13 +9,13 @@ const connection = mysql.createConnection({
     database: 'projet_seances_loic',
 });
 
-connection.connect((err => {
+connection.connect((err) => {
     if (err) {
         console.error('Erreur de connexion à la base de données : ', err);
         return;
     }
     console.log('Connecté à la base de données MySQL.');
-}));
+});
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(express.json());
 
 // Route pour la page d'accueil
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ==========================================
@@ -281,9 +282,6 @@ app.delete('/delete-all-sessions/:userId', (req, res) => {
 
 
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
 // ==========================================
 // DÉMARRAGE DU SERVEUR
 // ==========================================
