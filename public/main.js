@@ -482,15 +482,15 @@ function afficherProfil() {
     let userLogin = localStorage.getItem('userLogin');
 
     if (!userId || !userLogin) {
-        document.getElementById('not-connected-message').style.display = 'block';
+        document.getElementById('pas-connected-message').style.display = 'block';
         document.getElementById('profile-content').style.display = 'none';
         return;
     }
 
-    document.getElementById('not-connected-message').style.display = 'none';
+    document.getElementById('pas-connecte-message').style.display = 'none';
     document.getElementById('profile-content').style.display = 'block';
-    document.getElementById('profile-username').textContent = userLogin;
-    document.getElementById('profile-member-since').textContent = new Date().toLocaleDateString('fr-FR');
+    document.getElementById('profil-nom').textContent = userLogin;
+    document.getElementById('profil-membre').textContent = new Date().toLocaleDateString('fr-FR');
 
     chargerPlanningProfil();
 }
