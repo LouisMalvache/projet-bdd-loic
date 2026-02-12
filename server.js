@@ -4,7 +4,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 
 const connection = mysql.createConnection({
-    host: 'localhost',  
+    host: '127.0.0.1',  
     user: 'assesNodeServerDemo',
     password: 'assesNodeServerDemo',
     database: 'projet_seances_loic',
@@ -56,21 +56,37 @@ app.get('/user', (req, res) => {
 app.post('/register', async (req, res) => {
     console.log('Données reçues pour l\'inscription :');
     console.log(req.body);
-    
+
     try {
-        const motDePasseHache = await bcrypt.hash(req.body.password, 10);// Hacher le mot de passe
-        
         connection.query(
-            'INSERT INTO user (login, password) VALUES (?, ?)',
-            [req.body.login, motDePasseHache], // ← Utiliser le mot de passe haché
-            (err, results) => {
+            'SELECT id FROM user WHERE login = ?',
+            [req.body.login],
+            async (err, results) => {
                 if (err) {
-                    console.error('Erreur lors de l\'insertion dans la base de données :', err);
+                    console.error('Erreur lors de la vérification du login :', err);
                     res.status(500).json({ message: 'Erreur serveur' });
                     return;
                 }
-                console.log('Inscription réussie, ID utilisateur :', results.insertId);
-                res.json({ message: 'Inscription réussie !', userId: results.insertId, success: true });
+                if (results.length > 0) {
+                    res.status(409).json({ message: 'Ce login est déjà utilisé', success: false });
+                    return;
+                }
+                
+                const motDePasseHache = await bcrypt.hash(req.body.password, 10);
+
+                connection.query(
+                    'INSERT INTO user (login, password) VALUES (?, ?)',
+                    [req.body.login, motDePasseHache],
+                    (err, results) => {
+                        if (err) {
+                            console.error('Erreur lors de l\'insertion :', err);
+                            res.status(500).json({ message: 'Erreur serveur' });
+                            return;
+                        }
+                        console.log('Inscription réussie, ID utilisateur :', results.insertId);
+                        res.json({ message: 'Inscription réussie !', userId: results.insertId, success: true });
+                    }
+                );
             }
         );
     } catch (error) {
