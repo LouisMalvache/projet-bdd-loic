@@ -9,6 +9,7 @@ let planning = {
 };
 let jourChoisi = null;
 let pageActuelle = 'accueil';
+let boutonsProgrammeInitialises = false; // Pour éviter de dupliquer les event listeners
 
 // ==========================================
 // NAVIGATION
@@ -189,7 +190,12 @@ function chargerPlanning() {
         }
     });
 
+    // MODIFICATION ICI : Charger les exercices avant d'aller sur la page programme
     document.getElementById('btn-modify-session').addEventListener('click', function() {
+        // Charger les exercices de la séance dans mesExercices
+        if (jourChoisi && planning[jourChoisi] && planning[jourChoisi].exercises) {
+            mesExercices = JSON.parse(JSON.stringify(planning[jourChoisi].exercises)); // Copie profonde
+        }
         changerPage('programme');
     });
 
@@ -363,7 +369,8 @@ function afficherExercices() {
     };
 
     let conteneur = document.getElementById("exercises-container");
-    let jourPourSauver = null;
+    // MODIFICATION ICI : Utiliser jourChoisi s'il existe (mode modification)
+    let jourPourSauver = jourChoisi;
 
     function dessiner() {
         conteneur.innerHTML = "";
@@ -419,7 +426,25 @@ function afficherExercices() {
         dessiner();
     }
 
-    // Boutons
+    // MODIFICATION ICI : Rafraîchir au chargement pour afficher les exercices déjà sélectionnés
+    rafraichir();
+
+    // MODIFICATION ICI : Si on est en mode modification, pré-sélectionner le jour et activer le bouton
+    if (jourPourSauver) {
+        let btnJour = document.querySelector('.day-btn[data-day="' + jourPourSauver + '"]');
+        if (btnJour) {
+            btnJour.classList.add('active');
+            document.getElementById("btn-save-program").disabled = false;
+        }
+    }
+
+    // On n'initialise les boutons qu'une seule fois
+    if (boutonsProgrammeInitialises) {
+        return; // Si déjà fait, on arrête ici
+    }
+    boutonsProgrammeInitialises = true;
+
+    // Boutons - INITIALISATION UNE SEULE FOIS
     document.getElementById("btn-validate").addEventListener("click", function() {
         if (mesExercices.length === 0) return;
         document.getElementById("exercise-selection").style.display = "none";
@@ -444,6 +469,7 @@ function afficherExercices() {
         }
     });
 
+    // MODIFICATION ICI : Retourner au planning après sauvegarde
     document.getElementById("btn-save-program").addEventListener("click", function() {
         if (!jourPourSauver || mesExercices.length === 0) return;
         let userId = localStorage.getItem('userId');
@@ -461,11 +487,12 @@ function afficherExercices() {
         .then(function(data) {
             alert('Enregistré !');
             mesExercices = [];
+            jourChoisi = null; // Réinitialiser jourChoisi
             jourPourSauver = null;
             document.getElementById("save-program").style.display = "none";
             document.getElementById("exercise-selection").style.display = "block";
             rafraichir();
-            chargerPlanning();
+            changerPage('planning'); // Retourner au planning
         });
     });
 
@@ -477,8 +504,6 @@ function afficherExercices() {
         for (let i = 0; i < btns.length; i++) btns[i].classList.remove("active");
         document.getElementById("btn-save-program").disabled = true;
     });
-
-    dessiner();
 }
 
 // ==========================================
