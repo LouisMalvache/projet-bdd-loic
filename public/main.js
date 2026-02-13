@@ -9,7 +9,6 @@ let planning = {
 };
 let jourChoisi = null;
 let pageActuelle = 'accueil';
-let boutonsProgrammeInitialises = false; // Pour éviter de dupliquer les event listeners
 
 // ==========================================
 // NAVIGATION
@@ -190,11 +189,10 @@ function chargerPlanning() {
         }
     });
 
-    // MODIFICATION ICI : Charger les exercices avant d'aller sur la page programme
     document.getElementById('btn-modify-session').addEventListener('click', function() {
         // Charger les exercices de la séance dans mesExercices
         if (jourChoisi && planning[jourChoisi] && planning[jourChoisi].exercises) {
-            mesExercices = JSON.parse(JSON.stringify(planning[jourChoisi].exercises)); // Copie profonde
+            mesExercices = JSON.parse(JSON.stringify(planning[jourChoisi].exercises)); 
         }
         changerPage('programme');
     });
@@ -425,11 +423,8 @@ function afficherExercices() {
         document.getElementById("btn-validate").style.display = nb ? "inline-block" : "none";
         dessiner();
     }
-
-    // MODIFICATION ICI : Rafraîchir au chargement pour afficher les exercices déjà sélectionnés
     rafraichir();
 
-    // MODIFICATION ICI : Si on est en mode modification, pré-sélectionner le jour et activer le bouton
     if (jourPourSauver) {
         let btnJour = document.querySelector('.day-btn[data-day="' + jourPourSauver + '"]');
         if (btnJour) {
@@ -438,13 +433,6 @@ function afficherExercices() {
         }
     }
 
-    // On n'initialise les boutons qu'une seule fois
-    if (boutonsProgrammeInitialises) {
-        return; // Si déjà fait, on arrête ici
-    }
-    boutonsProgrammeInitialises = true;
-
-    // Boutons - INITIALISATION UNE SEULE FOIS
     document.getElementById("btn-validate").addEventListener("click", function() {
         if (mesExercices.length === 0) return;
         document.getElementById("exercise-selection").style.display = "none";
@@ -469,7 +457,6 @@ function afficherExercices() {
         }
     });
 
-    // MODIFICATION ICI : Retourner au planning après sauvegarde
     document.getElementById("btn-save-program").addEventListener("click", function() {
         if (!jourPourSauver || mesExercices.length === 0) return;
         let userId = localStorage.getItem('userId');
