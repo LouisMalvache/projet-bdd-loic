@@ -3,40 +3,22 @@
 // ==========================================
 
 let mesExercices = [];
-let planning = {
-    lundi: null, mardi: null, mercredi: null, jeudi: null,
-    vendredi: null, samedi: null, dimanche: null
-};
+let planning = {};
 let jourChoisi = null;
 let pageActuelle = 'accueil';
+let sessionEnEdition = null;
 
 // ==========================================
 // NAVIGATION
 // ==========================================
 
 function changerPage(nom) {
-    // Je cache tout
-    let pages = document.querySelectorAll('.content-section');
-    for (let i = 0; i < pages.length; i++) {
-        pages[i].classList.remove('active');
-    }
-
-    // J'affiche la bonne page
+    document.querySelectorAll('.content-section').forEach(p => p.classList.remove('active'));
     let page = document.getElementById(nom + '-section');
-    if (page) {
-        page.classList.add('active');
-        pageActuelle = nom;
-    }
-
-    // Je mets à jour le menu
-    let liens = document.querySelectorAll('.navbar-nav .nav-link');
-    for (let i = 0; i < liens.length; i++) {
-        liens[i].classList.remove('active');
-    }
+    if (page) { page.classList.add('active'); pageActuelle = nom; }
+    document.querySelectorAll('.navbar-nav .nav-link').forEach(l => l.classList.remove('active'));
     let lien = document.querySelector('[href="#' + nom + '"]');
     if (lien) lien.classList.add('active');
-
-    // Actions spéciales
     if (nom === 'planning') chargerPlanning();
     if (nom === 'programme') afficherExercices();
     if (nom === 'profil') afficherProfil();
@@ -49,85 +31,44 @@ function changerPage(nom) {
 let champLogin = document.getElementById('loginInput');
 let champPassword = document.getElementById('passwordInput');
 
-// Inscription
 document.getElementById('registerButton').addEventListener('click', function() {
-    let login = champLogin.value;
-    let password = champPassword.value;
-
-    if (!login || !password) {
-        alert('Remplis tous les champs !');
-        return;
-    }
-    
-    fetch('/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: login, password: password })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        alert(data.message);
-        if (data.success) {
-            document.getElementById('loginButton').click();
-        } else {
-            window.location.reload();
-        }
-    });
+    let login = champLogin.value, password = champPassword.value;
+    if (!login || !password) { alert('Remplis tous les champs !'); return; }
+    fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login, password }) })
+        .then(r => r.json()).then(data => {
+            alert(data.message);
+            if (data.success) document.getElementById('loginButton').click();
+            else window.location.reload();
+        });
 });
 
-
-// Connexion
 document.getElementById('loginButton').addEventListener('click', function() {
-    let login = champLogin.value;
-    let password = champPassword.value;
-    
-    if (!login || !password) {
-        alert('Remplis tous les champs !');
-        return;
-    }
-    fetch('/connexion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: login, password: password })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.success !== false) {
-            alert(data.message);
-            localStorage.setItem('userId', data.user.id);
-            localStorage.setItem('userLogin', login);
-            afficherUser(login);
-            document.getElementById('loginSection').style.display = 'none';
-            champLogin.value = '';
-            champPassword.value = '';
-        } else {
-            alert(data.message);
-        }
-    });
+    let login = champLogin.value, password = champPassword.value;
+    if (!login || !password) { alert('Remplis tous les champs !'); return; }
+    fetch('/connexion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login, password }) })
+        .then(r => r.json()).then(data => {
+            if (data.success !== false) {
+                alert(data.message);
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userLogin', login);
+                afficherUser(login);
+                document.getElementById('loginSection').style.display = 'none';
+                champLogin.value = ''; champPassword.value = '';
+            } else { alert(data.message); }
+        });
 });
 
-// Déconnexion
 function deconnecter() {
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userLogin');
-    afficherUser(null);
-    window.location.reload();
+    localStorage.removeItem('userId'); localStorage.removeItem('userLogin');
+    afficherUser(null); window.location.reload();
 }
 
 function afficherUser(login) {
     let bouton = document.getElementById('toggleLoginButton');
     let badge = document.getElementById('connectedUserBadge');
     let nom = document.getElementById('connectedUser');
-
-    if (login) {
-        nom.textContent = login;
-        badge.style.display = 'inline-flex';
-        bouton.style.display = 'none';
-    } else {
-        nom.textContent = '';
-        badge.style.display = 'none';
-        bouton.style.display = 'inline-flex';
-    }
+    if (login) { nom.textContent = login; badge.style.display = 'inline-flex'; bouton.style.display = 'none'; }
+    else { nom.textContent = ''; badge.style.display = 'none'; bouton.style.display = 'inline-flex'; }
 }
 
 // ==========================================
@@ -135,25 +76,17 @@ function afficherUser(login) {
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Menu connexion
     let bouton = document.getElementById('toggleLoginButton');
     let menu = document.getElementById('loginSection');
-    
     bouton.addEventListener('click', function() {
         menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     });
-
     document.addEventListener('click', function(e) {
-        if (!menu.contains(e.target) && !bouton.contains(e.target)) {
-            menu.style.display = 'none';
-        }
+        if (!menu.contains(e.target) && !bouton.contains(e.target)) menu.style.display = 'none';
     });
-
-    // Vérifier si connecté
     let userId = localStorage.getItem('userId');
     let userLogin = localStorage.getItem('userLogin');
     if (userId && userLogin) afficherUser(userLogin);
-
     changerPage('accueil');
 });
 
@@ -163,104 +96,104 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function chargerPlanning() {
     let userId = localStorage.getItem('userId');
-    if (!userId) return;
+    if (!userId) { afficherSemaine(); return; }
 
     fetch('/weekly-plan/' + userId)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            planning = {
-                lundi: data.lundi || null,
-                mardi: data.mardi || null,
-                mercredi: data.mercredi || null,
-                jeudi: data.jeudi || null,
-                vendredi: data.vendredi || null,
-                samedi: data.samedi || null,
-                dimanche: data.dimanche || null
-            };
-            afficherSemaine();
-        });
+        .then(r => r.json())
+        .then(data => { planning = data; afficherSemaine(); });
 
-    // Clic sur un jour
-    document.getElementById('weekly-overview').addEventListener('click', function(e) {
+    let overview = document.getElementById('weekly-overview');
+    let newOverview = overview.cloneNode(true);
+    overview.parentNode.replaceChild(newOverview, overview);
+    newOverview.addEventListener('click', function(e) {
         let carte = e.target.closest('.weekly-day-card');
-        if (carte) {
-            jourChoisi = carte.dataset.day;
-            afficherJour(jourChoisi);
-        }
+        if (carte) { jourChoisi = carte.dataset.day; afficherJour(jourChoisi); }
     });
 
-    document.getElementById('btn-modify-session').addEventListener('click', function() {
-        // Charger les exercices de la séance dans mesExercices
-        if (jourChoisi && planning[jourChoisi] && planning[jourChoisi].exercises) {
-            mesExercices = JSON.parse(JSON.stringify(planning[jourChoisi].exercises)); 
-        }
-        changerPage('programme');
-    });
-
-    document.getElementById('btn-close-day').addEventListener('click', function() {
+    document.getElementById('btn-modify-session').onclick = function() { changerPage('programme'); };
+    document.getElementById('btn-close-day').onclick = function() {
         document.getElementById('day-details').style.display = 'none';
-    });
+    };
 }
 
 function afficherJour(jour) {
     let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
-    document.getElementById('selected-day-title').innerHTML = 
-        '<i class="fas fa-calendar-day"></i> Séance du ' + titre;
-    afficherSeance(jour);
+    document.getElementById('selected-day-title').innerHTML = '<i class="fas fa-calendar-day"></i> ' + titre;
+    afficherSeances(jour);
     document.getElementById('day-details').style.display = 'block';
+    document.getElementById('btn-modify-session').style.display = 'none';
 }
 
-function afficherSeance(jour) {
+function afficherSeances(jour) {
     let zone = document.getElementById('saved-session-display');
-    let seance = planning[jour];
+    let seances = planning[jour];
 
-    if (!seance || !seance.exercises || seance.exercises.length === 0) {
-        zone.innerHTML = '<div style="text-align: center; padding: 2rem;">' +
-            '<i class="fas fa-calendar-times" style="font-size: 3rem;"></i>' +
-            '<p>Aucune séance</p>' +
-            '<button onclick="changerPage(\'programme\')" class="btn-capture">' +
-            '<i class="fas fa-plus"></i> Créer</button></div>';
-        return;
+    let html = '<div style="text-align:center;margin-bottom:1.5rem;">' +
+        '<button onclick="nouvelleSeance(\'' + jour + '\')" class="btn-capture">' +
+        '<i class="fas fa-plus"></i> Ajouter une séance</button></div>';
+
+    if (!seances || seances.length === 0) {
+        html += '<div style="text-align:center;padding:1rem;color:var(--text-muted);">' +
+            '<i class="fas fa-calendar-times" style="font-size:2rem;"></i><p>Aucune séance ce jour</p></div>';
+        zone.innerHTML = html; return;
     }
 
-    // Grouper par muscle
-    let parMuscle = {};
-    for (let i = 0; i < seance.exercises.length; i++) {
-        let ex = seance.exercises[i];
-        if (!parMuscle[ex.muscle]) parMuscle[ex.muscle] = [];
-        parMuscle[ex.muscle].push(ex);
-    }
-
-    let html = '<div class="session-preview"><h4><i class="fas fa-dumbbell"></i> ' + 
-        seance.exercises.length + ' exercice(s)</h4>';
-
-    let muscles = Object.keys(parMuscle);
-    for (let i = 0; i < muscles.length; i++) {
-        let muscle = muscles[i];
-        html += '<div style="margin-top: 1rem;"><strong>' + muscle + ':</strong><br>';
-        for (let j = 0; j < parMuscle[muscle].length; j++) {
-            let ex = parMuscle[muscle][j];
-            html += '<div class="exercise-item"><img src="' + ex.image + '" width="60">' +
-                '<span>' + ex.name + '</span></div>';
+    for (let i = 0; i < seances.length; i++) {
+        let s = seances[i];
+        let parMuscle = {};
+        for (let j = 0; j < s.exercises.length; j++) {
+            let ex = s.exercises[j];
+            if (!parMuscle[ex.muscle]) parMuscle[ex.muscle] = [];
+            parMuscle[ex.muscle].push(ex);
         }
-        html += '</div>';
+        html += '<div class="seance-block">' +
+            '<div class="seance-header">' +
+            '<span class="seance-name"><i class="fas fa-dumbbell"></i> ' + s.sessionName + '</span>' +
+            '<div class="seance-actions">' +
+            '<button onclick="modifierSeance(' + s.id + ',\'' + jour + '\')" class="btn-seance-edit"><i class="fas fa-edit"></i></button>' +
+            '<button onclick="supprimerSeance(' + s.id + ',\'' + jour + '\')" class="btn-seance-delete"><i class="fas fa-trash"></i></button>' +
+            '</div></div><div class="seance-body">';
+        let muscles = Object.keys(parMuscle);
+        for (let m = 0; m < muscles.length; m++) {
+            html += '<div class="seance-muscle-group"><strong>' + muscles[m] + '</strong>';
+            for (let k = 0; k < parMuscle[muscles[m]].length; k++) {
+                let ex = parMuscle[muscles[m]][k];
+                html += '<div class="exercise-item"><img src="' + ex.image + '" width="50"><span>' + ex.name + '</span></div>';
+            }
+            html += '</div>';
+        }
+        html += '</div></div>';
     }
-
-    html += '<button class="btn-delete-session" onclick="supprimerSeance(\'' + jour + '\')">' +
-        '<i class="fas fa-trash"></i> Supprimer</button></div>';
     zone.innerHTML = html;
 }
 
-function supprimerSeance(jour) {
-    if (!confirm('Supprimer la séance ?')) return;
-    
-    let userId = localStorage.getItem('userId');
-    fetch('/delete-session/' + userId + '/' + jour, { method: 'DELETE' })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            alert(data.message);
-            planning[jour] = null;
-            afficherSeance(jour);
+function nouvelleSeance(jour) {
+    jourChoisi = jour; mesExercices = []; sessionEnEdition = null;
+    changerPage('programme');
+}
+
+function modifierSeance(sessionId, jour) {
+    jourChoisi = jour; sessionEnEdition = sessionId;
+    let seances = planning[jour];
+    for (let i = 0; i < seances.length; i++) {
+        if (seances[i].id === sessionId) {
+            mesExercices = JSON.parse(JSON.stringify(seances[i].exercises));
+            break;
+        }
+    }
+    changerPage('programme');
+}
+
+function supprimerSeance(sessionId, jour) {
+    if (!confirm('Supprimer cette séance ?')) return;
+    fetch('/delete-session/' + sessionId, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(() => {
+            if (planning[jour]) {
+                planning[jour] = planning[jour].filter(s => s.id !== sessionId);
+                if (planning[jour].length === 0) delete planning[jour];
+            }
+            afficherSeances(jour);
             afficherSemaine();
         });
 }
@@ -268,35 +201,20 @@ function supprimerSeance(jour) {
 function afficherSemaine() {
     let zone = document.getElementById('weekly-overview');
     if (!zone) return;
-
-    let jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
-    let icones = {
-        lundi: 'fa-moon', mardi: 'fa-fire', mercredi: 'fa-star',
-        jeudi: 'fa-bolt', vendredi: 'fa-rocket', samedi: 'fa-sun', dimanche: 'fa-bed'
-    };
-
+    let jours = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+    let icones = { lundi:'fa-moon', mardi:'fa-fire', mercredi:'fa-star', jeudi:'fa-bolt', vendredi:'fa-rocket', samedi:'fa-sun', dimanche:'fa-bed' };
     let html = '';
     for (let i = 0; i < jours.length; i++) {
         let jour = jours[i];
-        let seance = planning[jour];
-        let ok = seance && seance.exercises && seance.exercises.length > 0;
+        let seances = planning[jour];
+        let nb = seances ? seances.length : 0;
         let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
-
-        html += '<div class="weekly-day-card ' + (!ok ? 'rest-day' : '') + '" data-day="' + jour + '">' +
+        html += '<div class="weekly-day-card ' + (nb === 0 ? 'rest-day' : '') + '" data-day="' + jour + '">' +
             '<div class="day-header"><i class="fas ' + icones[jour] + '"></i><h4>' + titre + '</h4></div>';
-
-        if (ok) {
-            let muscles = [];
-            for (let j = 0; j < seance.exercises.length; j++) {
-                if (!muscles.includes(seance.exercises[j].muscle)) {
-                    muscles.push(seance.exercises[j].muscle);
-                }
-            }
-            html += '<p>' + seance.exercises.length + ' exercice(s)</p>' +
-                '<div class="muscle-groups">' + muscles.join(', ') + '</div>';
-        } else {
-            html += '<p>Repos</p>';
-        }
+        if (nb > 0) {
+            let noms = seances.map(s => s.sessionName).join(', ');
+            html += '<p>' + nb + ' séance' + (nb > 1 ? 's' : '') + '</p><div class="muscle-groups">' + noms + '</div>';
+        } else { html += '<p>Repos</p>'; }
         html += '</div>';
     }
     zone.innerHTML = html;
@@ -367,47 +285,49 @@ function afficherExercices() {
     };
 
     let conteneur = document.getElementById("exercises-container");
-    // MODIFICATION ICI : Utiliser jourChoisi s'il existe (mode modification)
     let jourPourSauver = jourChoisi;
+
+    // Pré-remplir le nom si édition
+    let nomInput = document.getElementById('session-name-input');
+    if (sessionEnEdition && jourChoisi && planning[jourChoisi]) {
+        let seances = planning[jourChoisi];
+        for (let i = 0; i < seances.length; i++) {
+            if (seances[i].id === sessionEnEdition) { nomInput.value = seances[i].sessionName; break; }
+        }
+    } else { nomInput.value = ''; }
+
+    // Pré-sélectionner le jour
+    if (jourPourSauver) {
+        let btnJour = document.querySelector('.day-btn[data-day="' + jourPourSauver + '"]');
+        if (btnJour) {
+            document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+            btnJour.classList.add('active');
+            document.getElementById("btn-save-program").disabled = false;
+        }
+    }
 
     function dessiner() {
         conteneur.innerHTML = "";
         let muscles = Object.keys(exercices);
-        
         for (let i = 0; i < muscles.length; i++) {
             let muscle = muscles[i];
             let section = document.createElement("section");
             section.innerHTML = "<h3>" + muscle + "</h3>";
             let grille = document.createElement("div");
             grille.className = "d-flex flex-wrap justify-content-center";
-
             for (let j = 0; j < exercices[muscle].length; j++) {
                 let ex = exercices[muscle][j];
-                let selectionne = false;
-                for (let k = 0; k < mesExercices.length; k++) {
-                    if (mesExercices[k].name === ex.name) selectionne = true;
-                }
-
+                let selectionne = mesExercices.some(e => e.name === ex.name);
                 let carte = document.createElement("div");
                 carte.className = "card m-2 p-2 exercise-card" + (selectionne ? " border border-warning" : "");
-                carte.style.width = "180px";
-                carte.style.cursor = "pointer";
-                carte.innerHTML = '<img src="' + ex.image + '" class="card-img-top">' +
-                    '<div class="card-body text-center"><p>' + ex.name + '</p></div>';
-                
+                carte.style.width = "180px"; carte.style.cursor = "pointer";
+                carte.innerHTML = '<img src="' + ex.image + '" class="card-img-top"><div class="card-body text-center"><p>' + ex.name + '</p></div>';
                 carte.addEventListener("click", function() {
-                    let idx = -1;
-                    for (let k = 0; k < mesExercices.length; k++) {
-                        if (mesExercices[k].name === ex.name) idx = k;
-                    }
-                    if (idx >= 0) {
-                        mesExercices.splice(idx, 1);
-                    } else {
-                        mesExercices.push({ name: ex.name, image: ex.image, muscle: muscle });
-                    }
+                    let idx = mesExercices.findIndex(e => e.name === ex.name);
+                    if (idx >= 0) mesExercices.splice(idx, 1);
+                    else mesExercices.push({ name: ex.name, image: ex.image, muscle: muscle });
                     rafraichir();
                 });
-                
                 grille.appendChild(carte);
             }
             section.appendChild(grille);
@@ -425,13 +345,11 @@ function afficherExercices() {
     }
     rafraichir();
 
-    if (jourPourSauver) {
-        let btnJour = document.querySelector('.day-btn[data-day="' + jourPourSauver + '"]');
-        if (btnJour) {
-            btnJour.classList.add('active');
-            document.getElementById("btn-save-program").disabled = false;
-        }
-    }
+    // Cloner boutons pour éviter doublons de listeners
+    ['btn-validate','btn-reset','btn-save-program','btn-back-selection','save-day-buttons'].forEach(id => {
+        let el = document.getElementById(id);
+        if (el) { let clone = el.cloneNode(true); el.parentNode.replaceChild(clone, el); }
+    });
 
     document.getElementById("btn-validate").addEventListener("click", function() {
         if (mesExercices.length === 0) return;
@@ -440,17 +358,13 @@ function afficherExercices() {
     });
 
     document.getElementById("btn-reset").addEventListener("click", function() {
-        if (confirm("Tout supprimer ?")) {
-            mesExercices = [];
-            rafraichir();
-        }
+        if (confirm("Tout supprimer ?")) { mesExercices = []; rafraichir(); }
     });
 
     document.getElementById("save-day-buttons").addEventListener("click", function(e) {
         let btn = e.target.closest(".day-btn");
         if (btn) {
-            let btns = document.querySelectorAll(".day-btn");
-            for (let i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+            document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             jourPourSauver = btn.dataset.day;
             document.getElementById("btn-save-program").disabled = false;
@@ -460,37 +374,58 @@ function afficherExercices() {
     document.getElementById("btn-save-program").addEventListener("click", function() {
         if (!jourPourSauver || mesExercices.length === 0) return;
         let userId = localStorage.getItem('userId');
-        if (!userId) {
-            alert('Connecte-toi !');
-            return;
-        }
+        if (!userId) { alert('Connecte-toi !'); return; }
+        let nomSeance = document.getElementById('session-name-input').value.trim();
+        if (!nomSeance) { alert('Donne un nom à ta séance !'); return; }
 
-        fetch('/save-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: userId, day: jourPourSauver, exercises: mesExercices })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            alert('Enregistré !');
-            mesExercices = [];
-            jourChoisi = null; // Réinitialiser jourChoisi
-            jourPourSauver = null;
-            document.getElementById("save-program").style.display = "none";
-            document.getElementById("exercise-selection").style.display = "block";
-            rafraichir();
-            changerPage('planning'); // Retourner au planning
-        });
+        if (sessionEnEdition) {
+            fetch('/update-session/' + sessionEnEdition, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionName: nomSeance, exercises: mesExercices })
+            }).then(r => r.json()).then(() => {
+                if (planning[jourPourSauver]) {
+                    planning[jourPourSauver].forEach(s => {
+                        if (s.id === sessionEnEdition) { s.sessionName = nomSeance; s.exercises = mesExercices; }
+                    });
+                }
+                reinitialiserFormulaire();
+                changerPage('planning');
+                setTimeout(() => { jourChoisi = jourPourSauver; afficherJour(jourChoisi); }, 100);
+            });
+        } else {
+            fetch('/save-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, day: jourPourSauver, sessionName: nomSeance, exercises: mesExercices })
+            }).then(r => r.json()).then(data => {
+                if (!planning[jourPourSauver]) planning[jourPourSauver] = [];
+                planning[jourPourSauver].push({ id: data.sessionId, sessionName: nomSeance, exercises: mesExercices });
+                let jourSave = jourPourSauver;
+                reinitialiserFormulaire();
+                changerPage('planning');
+                setTimeout(() => { jourChoisi = jourSave; afficherJour(jourChoisi); }, 100);
+            });
+        }
     });
 
     document.getElementById("btn-back-selection").addEventListener("click", function() {
         document.getElementById("save-program").style.display = "none";
         document.getElementById("exercise-selection").style.display = "block";
-        jourPourSauver = null;
-        let btns = document.querySelectorAll(".day-btn");
-        for (let i = 0; i < btns.length; i++) btns[i].classList.remove("active");
-        document.getElementById("btn-save-program").disabled = true;
+        document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+        if (jourChoisi) {
+            let btn = document.querySelector('.day-btn[data-day="' + jourChoisi + '"]');
+            if (btn) { btn.classList.add('active'); document.getElementById("btn-save-program").disabled = false; }
+        } else { document.getElementById("btn-save-program").disabled = true; }
     });
+}
+
+function reinitialiserFormulaire() {
+    mesExercices = []; sessionEnEdition = null;
+    document.getElementById("save-program").style.display = "none";
+    document.getElementById("exercise-selection").style.display = "block";
+    let nomInput = document.getElementById('session-name-input');
+    if (nomInput) nomInput.value = '';
 }
 
 // ==========================================
@@ -500,18 +435,15 @@ function afficherExercices() {
 function afficherProfil() {
     let userId = localStorage.getItem('userId');
     let userLogin = localStorage.getItem('userLogin');
-
     if (!userId || !userLogin) {
-        document.getElementById('pas-connected-message').style.display = 'block';
+        document.getElementById('pas-connecte-message').style.display = 'block';
         document.getElementById('profile-content').style.display = 'none';
         return;
     }
-
     document.getElementById('pas-connecte-message').style.display = 'none';
     document.getElementById('profile-content').style.display = 'block';
     document.getElementById('profil-nom').textContent = userLogin;
     document.getElementById('profil-membre').textContent = new Date().toLocaleDateString('fr-FR');
-
     chargerPlanningProfil();
 }
 
@@ -519,35 +451,21 @@ function chargerPlanningProfil() {
     let userId = localStorage.getItem('userId');
     let conteneur = document.getElementById('profile-weekly-schedule');
     if (!userId || !conteneur) return;
-
-    fetch('/weekly-plan/' + userId)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            let jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
-            let icones = {
-                lundi: 'fa-moon', mardi: 'fa-fire', mercredi: 'fa-star',
-                jeudi: 'fa-bolt', vendredi: 'fa-rocket', samedi: 'fa-sun', dimanche: 'fa-bed'
-            };
-            let html = '';
-
-            for (let i = 0; i < jours.length; i++) {
-                let jour = jours[i];
-                let seance = data[jour];
-                let ok = seance && seance.exercises && seance.exercises.length > 0;
-                let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
-
-                html += '<div class="profile-day-item ' + (ok ? 'has-session' : 'rest-day') + '">' +
-                    '<div class="day-icon"><i class="fas ' + icones[jour] + '"></i></div>' +
-                    '<div class="day-info"><strong>' + titre + '</strong>';
-                
-                if (ok) {
-                    html += '<br><small>' + seance.exercises.length + ' exercice(s)</small>';
-                } else {
-                    html += '<br><small>Repos</small>';
-                }
-                html += '</div></div>';
-            }
-
-            conteneur.innerHTML = html;
-        });
+    fetch('/weekly-plan/' + userId).then(r => r.json()).then(data => {
+        let jours = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+        let icones = { lundi:'fa-moon', mardi:'fa-fire', mercredi:'fa-star', jeudi:'fa-bolt', vendredi:'fa-rocket', samedi:'fa-sun', dimanche:'fa-bed' };
+        let html = '';
+        for (let i = 0; i < jours.length; i++) {
+            let jour = jours[i];
+            let seances = data[jour];
+            let nb = seances ? seances.length : 0;
+            let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
+            html += '<div class="profile-day-item ' + (nb > 0 ? 'has-session' : '') + '">' +
+                '<div class="day-icon"><i class="fas ' + icones[jour] + '"></i></div>' +
+                '<strong>' + titre + '</strong>';
+            html += nb > 0 ? '<small>' + nb + ' séance' + (nb > 1 ? 's' : '') + '</small>' : '<small>Repos</small>';
+            html += '</div>';
+        }
+        conteneur.innerHTML = html;
+    });
 }

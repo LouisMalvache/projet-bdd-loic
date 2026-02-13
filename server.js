@@ -19,11 +19,9 @@ connection.connect((err) => {
 });
 
 const app = express();
-
 app.use(express.static('public'));  
 app.use(express.json());
 
-// Route pour la page d'accueil
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -32,289 +30,126 @@ app.get('/', (req, res) => {
 // ROUTES UTILISATEUR
 // ==========================================
 
-app.get('/login', (req, res) => {
-    res.send('bienvenu sur la page de connexion');
-});
-
-app.get('/info', (req, res) => {
-    res.json({ cle1: 'valeur1', cle2: 'valeur2' });
-});
+app.get('/login', (req, res) => { res.send('bienvenu sur la page de connexion'); });
+app.get('/info', (req, res) => { res.json({ cle1: 'valeur1', cle2: 'valeur2' }); });
 
 app.get('/user', (req, res) => {
     connection.query('SELECT * FROM user', (err, results) => {
-        if (err) {
-            console.error('Erreur lors de la récupération des utilisateurs :', err);
-            res.status(500).json({ message: 'Erreur serveur' });
-            return;
-        }
+        if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
         res.json(results);
     });
 });
 
-// inscription FAUT QUE TU GERES POUR EVITER D'AVOIR PLUSIEURS LOGIN IDENTIQUES 
-
 app.post('/register', async (req, res) => {
-    console.log('Données reçues pour l\'inscription :');
-    console.log(req.body);
-
     try {
-        connection.query(
-            'SELECT id FROM user WHERE login = ?',
-            [req.body.login],
-            async (err, results) => {
-                if (err) {
-                    console.error('Erreur lors de la vérification du login :', err);
-                    res.status(500).json({ message: 'Erreur serveur' });
-                    return;
-                }
-                if (results.length > 0) {
-                    res.status(409).json({ message: 'Ce login est déjà utilisé', success: false });
-                    return;
-                }
-                
-                const motDePasseHache = await bcrypt.hash(req.body.password, 10);
-
-                connection.query(
-                    'INSERT INTO user (login, password) VALUES (?, ?)',
-                    [req.body.login, motDePasseHache],
-                    (err, results) => {
-                        if (err) {
-                            console.error('Erreur lors de l\'insertion :', err);
-                            res.status(500).json({ message: 'Erreur serveur' });
-                            return;
-                        }
-                        console.log('Inscription réussie, ID utilisateur :', results.insertId);
-                        res.json({ message: 'Inscription réussie !', userId: results.insertId, success: true });
-                    }
-                );
-            }
-        );
+        connection.query('SELECT id FROM user WHERE login = ?', [req.body.login], async (err, results) => {
+            if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+            if (results.length > 0) { res.status(409).json({ message: 'Ce login est déjà utilisé', success: false }); return; }
+            const motDePasseHache = await bcrypt.hash(req.body.password, 10);
+            connection.query('INSERT INTO user (login, password) VALUES (?, ?)', [req.body.login, motDePasseHache], (err, results) => {
+                if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+                res.json({ message: 'Inscription réussie !', userId: results.insertId, success: true });
+            });
+        });
     } catch (error) {
-        console.error('Erreur lors du hachage :', error);
         res.status(500).json({ message: 'Erreur serveur' });
     }
 });
 
-// connexion
-
-app.post('/connexion', async (req, res) => {  
-    console.log(req.body);
+app.post('/connexion', async (req, res) => {
     const { login, password } = req.body;
-    
     connection.query('SELECT * FROM user WHERE login = ?', [login], async (err, results) => {
-        if (err) {    // Récupérer l'utilisateur par login uniquement
-            console.error('Erreur lors de la vérification des identifiants :', err);
-            res.status(500).json({ message: 'Erreur serveur' });
-            return;
-        }
-        if (results.length === 0) {
-            res.status(401).json({ message: 'Identifiants invalides', success: false });
-            return;
-        }
-        const match = await bcrypt.compare(password, results[0].password);  // Comparer le mot de passe avec le hash
-        if (!match) {
-            res.status(401).json({ message: 'Identifiants invalides', success: false });
-            return;
-        }
+        if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+        if (results.length === 0) { res.status(401).json({ message: 'Identifiants invalides', success: false }); return; }
+        const match = await bcrypt.compare(password, results[0].password);
+        if (!match) { res.status(401).json({ message: 'Identifiants invalides', success: false }); return; }
         res.json({ message: 'Connexion réussie !', user: results[0] });
     });
 });
 
 app.get('/connecte/:userId', (req, res) => {
-    const userId = req.params.userId;
-    
-    connection.query(
-        'SELECT * FROM user WHERE id = ?',
-        [userId],
-        (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la récupération des informations utilisateur :', err);
-                res.status(500).json({ message: 'Erreur serveur' });
-                return;
-            }       
-            if (results.length === 0) {
-                res.status(404).json({ message: 'Utilisateur non trouvé' });
-                return;
-            } 
-            res.json(results[0]);
-        }
-    );
+    connection.query('SELECT * FROM user WHERE id = ?', [req.params.userId], (err, results) => {
+        if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+        if (results.length === 0) { res.status(404).json({ message: 'Utilisateur non trouvé' }); return; }
+        res.json(results[0]);
+    });
 });
 
 // ==========================================
-// ROUTES PLANNING HEBDOMADAIRE
+// ROUTES PLANNING — PLUSIEURS SÉANCES PAR JOUR
 // ==========================================
 
-// Sauvegarder une séance pour un jour spécifique
+// Sauvegarder une NOUVELLE séance (toujours INSERT)
 app.post('/save-session', (req, res) => {
-    console.log('Sauvegarde de séance reçue :');
-    console.log(req.body);
-    
-    const { userId, day, exercises } = req.body;
-    
-    if (!userId) {
-        res.status(400).json({ message: 'Utilisateur non connecté' });
-        return;
-    }
-    
-    if (!day || !exercises) {
-        res.status(400).json({ message: 'Données incomplètes' });
-        return;
-    }
-    
-    // Convertir le tableau d'exercices en JSON
+    const { userId, day, sessionName, exercises } = req.body;
+    if (!userId) { res.status(400).json({ message: 'Utilisateur non connecté' }); return; }
+    if (!day || !exercises || !sessionName) { res.status(400).json({ message: 'Données incomplètes' }); return; }
+
     const exercisesJson = JSON.stringify(exercises);
     const savedDate = new Date();
-    
-    // Vérifier si une séance existe déjà pour ce jour et cet utilisateur
+
     connection.query(
-        'SELECT * FROM seances WHERE userId = ? AND day = ?',
-        [userId, day],
+        'INSERT INTO seances (userId, day, sessionName, exercises, savedDate) VALUES (?, ?, ?, ?, ?)',
+        [userId, day, sessionName, exercisesJson, savedDate],
         (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la vérification de la séance :', err);
-                res.status(500).json({ message: 'Erreur serveur' });
-                return;
-            }
-            
-            if (results.length > 0) {
-                // Mettre à jour la séance existante
-                connection.query(
-                    'UPDATE seances SET exercises = ?, savedDate = ? WHERE userId = ? AND day = ?',
-                    [exercisesJson, savedDate, userId, day],
-                    (err, results) => {
-                        if (err) {
-                            console.error('Erreur lors de la mise à jour de la séance :', err);
-                            res.status(500).json({ message: 'Erreur serveur' });
-                            return;
-                        }
-                        console.log('Séance mise à jour avec succès');
-                        res.json({ message: 'Séance mise à jour avec succès !' });
-                    }
-                );
-            } else {
-                // Insérer une nouvelle séance
-                connection.query(
-                    'INSERT INTO seances (userId, day, exercises, savedDate) VALUES (?, ?, ?, ?)',
-                    [userId, day, exercisesJson, savedDate],
-                    (err, results) => {
-                        if (err) {
-                            console.error('Erreur lors de l\'insertion de la séance :', err);
-                            res.status(500).json({ message: 'Erreur serveur' });
-                            return;
-                        }
-                        console.log('Séance enregistrée avec succès, ID :', results.insertId);
-                        res.json({ message: 'Séance enregistrée avec succès !', sessionId: results.insertId });
-                    }
-                );
-            }
+            if (err) { console.error(err); res.status(500).json({ message: 'Erreur serveur' }); return; }
+            res.json({ message: 'Séance enregistrée !', sessionId: results.insertId });
         }
     );
 });
 
-// Récupérer toutes les séances d'un utilisateur
+// Mettre à jour une séance existante par son ID
+app.put('/update-session/:sessionId', (req, res) => {
+    const { sessionId } = req.params;
+    const { sessionName, exercises } = req.body;
+    connection.query(
+        'UPDATE seances SET sessionName = ?, exercises = ? WHERE id = ?',
+        [sessionName, JSON.stringify(exercises), sessionId],
+        (err) => {
+            if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+            res.json({ message: 'Séance mise à jour !' });
+        }
+    );
+});
+
+// Récupérer toutes les séances groupées par jour
 app.get('/weekly-plan/:userId', (req, res) => {
-    const userId = req.params.userId;
-    
     connection.query(
-        'SELECT * FROM seances WHERE userId = ?',
-        [userId],
+        'SELECT * FROM seances WHERE userId = ? ORDER BY day, savedDate ASC',
+        [req.params.userId],
         (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la récupération du planning :', err);
-                res.status(500).json({ message: 'Erreur serveur' });
-                return;
-            }
-            
-            // Convertir les exercices JSON en objets JavaScript
-            const seancesSemaine = {};
-            results.forEach(session => {
-                seancesSemaine[session.day] = {
-                    exercises: JSON.parse(session.exercises),
-                    savedDate: session.savedDate
-                };
+            if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+            const semaine = {};
+            results.forEach(row => {
+                if (!semaine[row.day]) semaine[row.day] = [];
+                semaine[row.day].push({
+                    id: row.id,
+                    sessionName: row.sessionName || 'Séance',
+                    exercises: JSON.parse(row.exercises),
+                    savedDate: row.savedDate
+                });
             });
-            
-            res.json(seancesSemaine);
+            res.json(semaine);
         }
     );
 });
 
-// Récupérer une séance spécifique pour un jour
-app.get('/session/:userId/:day', (req, res) => {
-    const { userId, day } = req.params;
-    
-    connection.query(
-        'SELECT * FROM seances WHERE userId = ? AND day = ?',
-        [userId, day],
-        (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la récupération de la séance :', err);
-                res.status(500).json({ message: 'Erreur serveur' });
-                return;
-            }
-            
-            if (results.length === 0) {
-                res.json({ message: 'Aucune séance pour ce jour', session: null });
-                return;
-            }
-            
-            const session = {
-                exercises: JSON.parse(results[0].exercises),
-                savedDate: results[0].savedDate
-            };
-            
-            res.json({ session });
-        }
-    );
-});
-
-// Supprimer une séance
-app.delete('/delete-session/:userId/:day', (req, res) => {
-    const { userId, day } = req.params;
-    
-    connection.query(
-        'DELETE FROM seances WHERE userId = ? AND day = ?',
-        [userId, day],
-        (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la suppression de la séance :', err);
-                res.status(500).json({ message: 'Erreur serveur' });
-                return;
-            }
-            
-            if (results.affectedRows === 0) {
-                res.status(404).json({ message: 'Aucune séance trouvée pour ce jour' });
-                return;
-            }
-            
-            console.log('Séance supprimée avec succès');
-            res.json({ message: 'Séance supprimée avec succès !' });
-        }
-    );
+// Supprimer UNE séance par son ID
+app.delete('/delete-session/:sessionId', (req, res) => {
+    connection.query('DELETE FROM seances WHERE id = ?', [req.params.sessionId], (err, results) => {
+        if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+        if (results.affectedRows === 0) { res.status(404).json({ message: 'Séance introuvable' }); return; }
+        res.json({ message: 'Séance supprimée !' });
+    });
 });
 
 // Supprimer tout le planning d'un utilisateur
 app.delete('/delete-all-sessions/:userId', (req, res) => {
-    const userId = req.params.userId;
-    
-    connection.query(
-        'DELETE FROM seances WHERE userId = ?',
-        [userId],
-        (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la suppression du planning :', err);
-                res.status(500).json({ message: 'Erreur serveur' });
-                return;
-            }
-            
-            console.log('Planning supprimé avec succès');
-            res.json({ message: 'Planning supprimé avec succès !', deletedCount: results.affectedRows });
-        }
-    );
+    connection.query('DELETE FROM seances WHERE userId = ?', [req.params.userId], (err, results) => {
+        if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+        res.json({ message: 'Planning supprimé !', deletedCount: results.affectedRows });
+    });
 });
-
-
 
 // ==========================================
 // DÉMARRAGE DU SERVEUR
