@@ -265,7 +265,9 @@ function afficherExercices() {
             { name: "Tirage vertical", image: "img/tirage-vertical-poitrine.gif" },
             { name: "Rowing barre", image: "img/rowing-barre.gif" },
             { name: "Soulevé de terre", image: "img/souleve-de-terre-avec-deficit.gif" },
-            { name: "Extension lombaires", image: "img/extension-lombaires.gif" }
+            { name: "Extension lombaires", image: "img/extension-lombaires.gif" },
+            { name: "pull-over", image: "img/pull-over-poulie.gif" },
+            { name: "rowing halteres", image: "img/rowing-halteres-banc-incline.gif"}
         ],
         "Abdominaux": [
             { name: "Relevé de genoux suspendu", image: "img/releve-de-genoux-suspendu-exercice-musculation.gif" },
@@ -280,7 +282,8 @@ function afficherExercices() {
             { name: "Leg extension", image: "img/leg-extension.gif" },
             { name: "Leg curl allongé", image: "img/leg-curl-allonge.gif" },
             { name: "Fentes avant", image: "img/fentes-avant-kettlebell.gif" },
-            { name: "Squat sauté", image: "img/squat-saute.gif" }
+            { name: "Squat sauté", image: "img/squat-saute.gif" },
+            { name: "extension-hanche", image:'img/extension-hanche-poulie-basse.gif'}
         ]
     };
 
