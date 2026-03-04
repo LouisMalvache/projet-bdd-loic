@@ -354,11 +354,25 @@ function afficherExercices() {
         if (el) { let clone = el.cloneNode(true); el.parentNode.replaceChild(clone, el); }
     });
 
-    document.getElementById("btn-validate").addEventListener("click", function() {
-        if (mesExercices.length === 0) return;
-        document.getElementById("exercise-selection").style.display = "none";
-        document.getElementById("save-program").style.display = "block";
-    });
+document.getElementById("btn-validate").addEventListener("click", function() {
+    if (mesExercices.length === 0) return;
+    document.getElementById("exercise-selection").style.display = "none";
+    document.getElementById("save-program").style.display = "block";
+
+    let daySelector = document.querySelector(".day-selector");
+    if (sessionEnEdition) {
+        if (daySelector) daySelector.style.display = "none";
+        document.getElementById("btn-save-program").disabled = false;
+    } else {
+        if (daySelector) daySelector.style.display = "block";
+        // Remettre le jour actif si jourChoisi existe
+        if (jourChoisi) {
+            document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+            let btn = document.querySelector('.day-btn[data-day="' + jourChoisi + '"]');
+            if (btn) { btn.classList.add('active'); document.getElementById("btn-save-program").disabled = false; }
+        }
+    }
+});
 
     document.getElementById("btn-reset").addEventListener("click", function() {
         if (confirm("Tout supprimer ?")) { mesExercices = []; rafraichir(); }
