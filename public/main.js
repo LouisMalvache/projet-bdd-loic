@@ -285,7 +285,7 @@ function afficherExercices() {
     };
 
     let conteneur = document.getElementById("exercises-container");
-    let jourPourSauver = jourChoisi;
+    let jourSave = jourChoisi;
 
     // Pré-remplir le nom si édition
     let nomInput = document.getElementById('session-name-input');
@@ -297,8 +297,8 @@ function afficherExercices() {
     } else { nomInput.value = ''; }
 
     // Pré-sélectionner le jour
-    if (jourPourSauver) {
-        let btnJour = document.querySelector('.day-btn[data-day="' + jourPourSauver + '"]');
+    if (jourSave) {
+        let btnJour = document.querySelector('.day-btn[data-day="' + jourSave + '"]');
         if (btnJour) {
             document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
             btnJour.classList.add('active');
@@ -366,13 +366,13 @@ function afficherExercices() {
         if (btn) {
             document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            jourPourSauver = btn.dataset.day;
+            jourSave = btn.dataset.day;
             document.getElementById("btn-save-program").disabled = false;
         }
     });
 
     document.getElementById("btn-save-program").addEventListener("click", function() {
-        if (!jourPourSauver || mesExercices.length === 0) return;
+        if (!jourSave || mesExercices.length === 0) return;
         let userId = localStorage.getItem('userId');
         if (!userId) { alert('Connecte-toi !'); return; }
         let nomSeance = document.getElementById('session-name-input').value.trim();
@@ -384,24 +384,23 @@ function afficherExercices() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sessionName: nomSeance, exercises: mesExercices })
             }).then(r => r.json()).then(() => {
-                if (planning[jourPourSauver]) {
-                    planning[jourPourSauver].forEach(s => {
+                if (planning[jourSave]) {
+                    planning[jourSave].forEach(s => {
                         if (s.id === sessionEnEdition) { s.sessionName = nomSeance; s.exercises = mesExercices; }
                     });
                 }
                 reinitialiserFormulaire();
                 changerPage('planning');
-                setTimeout(() => { jourChoisi = jourPourSauver; afficherJour(jourChoisi); }, 100);
+                setTimeout(() => { jourChoisi = jourSave; afficherJour(jourChoisi); }, 100);
             });
         } else {
             fetch('/save-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, day: jourPourSauver, sessionName: nomSeance, exercises: mesExercices })
+                body: JSON.stringify({ userId, day: jourSave, sessionName: nomSeance, exercises: mesExercices })
             }).then(r => r.json()).then(data => {
-                if (!planning[jourPourSauver]) planning[jourPourSauver] = [];
-                planning[jourPourSauver].push({ id: data.sessionId, sessionName: nomSeance, exercises: mesExercices });
-                let jourSave = jourPourSauver;
+                if (!planning[jourSave]) planning[jourSave] = [];
+                planning[jourSave].push({ id: data.sessionId, sessionName: nomSeance, exercises: mesExercices });
                 reinitialiserFormulaire();
                 changerPage('planning');
                 setTimeout(() => { jourChoisi = jourSave; afficherJour(jourChoisi); }, 100);
