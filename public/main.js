@@ -231,14 +231,19 @@ function afficherExercices() {
             { name: "Élévations frontales", image: "img/elevation-frontale.gif" },
             { name: "Élévations latérales", image: "img/elevation-laterale.gif" },
             { name: "Shrugs", image: "img/shrugs-avec-halteres.gif" },
-            { name: "Développé épaules assis", image: "img/developpe-epaules-assis.gif" }
+            { name: "élévations latérales poulie", image: "img/elevations-laterales-unilaterale-poulie.gif" },
+            { name: "face pull", image: "img/face-pull.gif" },
+            { name: "pec deck arrière", image: "img/pec-deck-inverse.gif" },
+            { name: "tirage menton", image: "img/tirage-menton-avec-kettlebell.gif" }
         ],
         "Biceps": [
             { name: "Curl pupitre barre EZ", image: "img/curl-au-pupitre-barre-ez-larry-scott.gif" },
             { name: "Curl pupitre machine", image: "img/curl-pupitre-machine.gif" },
             { name: "Curl marteau", image: "img/curl-marteau.gif" },
             { name: "Curl haltères incliné", image: "img/curl-haltere-incline.gif" },
-            { name: "Curl concentration", image: "img/curl-concentre.gif" }
+            { name: "Curl concentration", image: "img/curl-concentre.gif" },
+            { name: " curl alterné sur banc incliné", image: "img/curl-biceps-alterne-sur-banc-incline.gif" },
+            { name: "curl à la poulie", image: "img/curl-biceps-poulie-basse.gif" }
         ],
         "Triceps": [
             { name: "Barre au front", image: "img/barre-front.gif" },
