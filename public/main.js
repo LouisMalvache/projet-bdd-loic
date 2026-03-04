@@ -250,7 +250,9 @@ function afficherExercices() {
             { name: "Extension corde haute", image: "img/extension-haute.gif" },
             { name: "Extension corde arrière", image: "img/extension-verticale-triceps-poulie-basse.gif" },
             { name: "Dips", image: "img/dips-triceps.gif" },
-            { name: "Pompes", image: "img/pompe-musculation.gif" }
+            { name: "Pompes", image: "img/pompe-musculation.gif" },
+            { name: "dips assis", image: "img/dips-assis-machine-matrix.gif" },
+            { name: "extension poulie haute", image: "img/extension-triceps-poulie-haute-corde.gif" }
         ],
         "Avant-bras": [
             { name: "Avant-bras assis", image: "img/avant bras 1.gif" },
@@ -262,7 +264,8 @@ function afficherExercices() {
             { name: "Développé incliné haltères", image: "img/developpe-incline-halteres-exercice-musculation.gif" },
             { name: "Écarté poulie", image: "img/ecarte-poulie.gif" },
             { name: "Pompes inclinées", image: "img/pompes-incline.gif" },
-            { name: "Pompes déclinées", image: "img/pompe-declinee.gif" }
+            { name: "Pompes déclinées", image: "img/pompe-declinee.gif" },
+            { name: "hex press smith", image: "img/hex-press-a-la-smith-machine.gif" },
         ],
         "Dos": [
             { name: "Traction", image: "img/traction-musculation-dos.gif" },
@@ -288,7 +291,12 @@ function afficherExercices() {
             { name: "Leg curl allongé", image: "img/leg-curl-allonge.gif" },
             { name: "Fentes avant", image: "img/fentes-avant-kettlebell.gif" },
             { name: "Squat sauté", image: "img/squat-saute.gif" },
-            { name: "extension-hanche", image:'img/extension-hanche-poulie-basse.gif'}
+            { name: "extension-hanche", image:'img/extension-hanche-poulie-basse.gif'},
+            { name: "hip thrust", image:'img/hip-thrust-a-la-machine.gif' },
+            { name: "hack squat", image:'img/hack-squat.gif'},
+            { name: "leg curl assis", image:'img/leg-curl-assis-machine.gif'},
+            { name: "extension mollets a la presse", image:'img/extension-mollets-presse-45.gif'},
+            
         ]
     };
 
