@@ -266,6 +266,7 @@ function afficherExercices() {
             { name: "Pompes inclinées", image: "img/pompes-incline.gif" },
             { name: "Pompes déclinées", image: "img/pompe-declinee.gif" },
             { name: "hex press smith", image: "img/hex-press-a-la-smith-machine.gif" },
+            { name: "developpé incliné marchine convergente", image: "img/developpe-incline-machine-convergente-exercice-musculation.gif" }
         ],
         "Dos": [
             { name: "Traction", image: "img/traction-musculation-dos.gif" },
