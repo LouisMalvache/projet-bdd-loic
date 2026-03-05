@@ -33,6 +33,19 @@
     background-clip: text;
 }
 
+.navbar-toggler {
+    border: none;
+    padding: 0.25rem 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 69, 0, 0.25);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23FF4500' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
 .nav-link {
     color: rgba(255, 255, 255, 0.8) !important;
     font-weight: 500;
@@ -503,6 +516,11 @@ input[type="button"]:hover {
     padding: 20px;
 }
 
+.container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
 .section-header {
     text-align: center;
     margin-bottom: 2rem;
@@ -797,68 +815,519 @@ input[type="button"]:hover {
 }
 
 /* RESPONSIVE */
+/* Tablettes et petits écrans (768px et moins) */
 @media (max-width: 768px) {
+    /* NAVBAR */
+    .navbar-custom {
+        padding: 0.75rem 0;
+    }
+    
+    .navbar-collapse {
+        flex-direction: column !important;
+    }
+
+    .navbar-nav {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .nav-link {
+        margin: 0.25rem 0 !important;
+        padding: 0.5rem 0 !important;
+    }
+
+    /* MAIN CONTENT */
+    body {
+        padding: 20px 15px;
+        padding-top: 80px;
+    }
+
     .main-content {
         padding-top: 70px;
     }
 
     .content-section {
-        padding: 1rem 0;
+        padding: 1.5rem 0;
     }
 
-    .hero-actions {
-        flex-direction: column;
-        align-items: center;
+    .container {
+        padding: 15px;
     }
 
-    .days-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .weekly-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .weekly-schedule-compact {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
+    /* TITRES */
     h1 {
         font-size: 1.8rem;
     }
 
     .hero-section h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
-    .exercise-card {
-        width: 160px;
-        height: 240px;
-    }
-}
-
-@media (max-width: 500px) {
-    body {
-        padding: 20px 10px;
-        padding-top: 100px;
-    }
-
-    h1 {
+    .section-header h2 {
         font-size: 1.5rem;
     }
 
+    /* HERO */
+    .hero-section {
+        padding: 1.5rem 0;
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .hero-actions .btn-capture,
+    .hero-actions .btn-secondary {
+        width: 100%;
+        padding: 0.9rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* EXERCICES */
+    .exercise-card {
+        width: 150px;
+        height: 220px;
+        margin: 8px;
+    }
+
+    .exercise-card img {
+        width: 120px;
+        height: 120px;
+    }
+
+    .card-body p {
+        font-size: 0.85rem;
+    }
+
+    /* SÉLECTEUR DE JOURS */
+    .days-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+    }
+
+    .day-btn {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .day-btn i {
+        font-size: 1.3rem;
+    }
+
+    /* BOUTONS */
     .action-buttons {
         flex-direction: column;
+        gap: 0.8rem;
     }
 
     .btn-capture,
+    .btn-reset,
+    .btn-secondary {
+        width: 100%;
+        padding: 0.9rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    /* PLANNING */
+    .weekly-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .weekly-day-card {
+        padding: 1rem;
+    }
+
+    .weekly-day-card .day-header h4 {
+        font-size: 1rem;
+    }
+
+    /* PROFIL */
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+    }
+
+    .profile-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .weekly-schedule-compact {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .profile-day-item {
+        padding: 0.8rem;
+    }
+
+    /* SÉANCES */
+    .seance-block {
+        margin-bottom: 0.8rem;
+    }
+
+    .seance-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .seance-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    /* INPUTS */
+    input[type="text"],
+    input[type="password"],
+    #session-name-input {
+        font-size: 16px;
+        padding: 10px 15px;
+    }
+
+    .login-form {
+        max-width: 100%;
+        padding: 15px;
+    }
+
+.login-buttons {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+    input[type="button"] {
+        padding: 10px 15px;
+        font-size: 0.95rem;
+    }
+
+    /* COMPTEUR */
+    .days-badge {
+        padding: 0.6rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Petits écrans et mobiles (500px et moins) */
+@media (max-width: 500px) {
+    body {
+        padding: 15px 10px;
+        padding-top: 70px;
+    }
+
+    .main-content {
+        padding-top: 60px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    /* NAVBAR */
+    .navbar-custom {
+        padding: 0.5rem 0;
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+    }
+
+    .navbar-collapse {
+        margin-top: 0.5rem;
+    }
+
+    .nav-link {
+        padding: 0.3rem 0 !important;
+        font-size: 0.9rem;
+        margin: 0 !important;
+    }
+
+    .nav-link i {
+        margin-right: 0.3rem;
+    }
+
+    .btn-login-compact {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .user-badge {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* TITRES */
+    h1 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-section h1 {
+        font-size: 1.3rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .section-header p {
+        font-size: 0.9rem;
+    }
+
+    /* HERO */
+    .hero-section {
+        padding: 1rem 0;
+    }
+
+    .hero-section p {
+        font-size: 0.9rem;
+    }
+
+    .hero-actions {
+        gap: 0.6rem;
+    }
+
+    .hero-actions .btn-capture,
+    .hero-actions .btn-secondary {
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 25px;
+    }
+
+    /* EXERCICES */
+    .exercise-card {
+        width: 130px;
+        height: 190px;
+        margin: 6px;
+        padding: 8px;
+    }
+
+    .exercise-card img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .card-body {
+        padding: 8px;
+    }
+
+    .card-body p {
+        font-size: 0.75rem;
+    }
+
+    #exercises-container h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    /* SÉLECTEUR DE JOURS */
+    .days-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+        max-width: 100%;
+    }
+
+    .day-btn {
+        padding: 0.6rem 0.5rem;
+        font-size: 0.8rem;
+        gap: 0.3rem;
+    }
+
+    .day-btn i {
+        font-size: 1.1rem;
+    }
+
+    .day-btn span {
+        font-size: 0.75rem;
+    }
+
+    /* BOUTONS */
+    .action-buttons {
+        gap: 0.5rem;
+    }
+
+    .btn-capture,
+    .btn-secondary,
     .btn-reset {
         width: 100%;
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 25px;
+        gap: 0.3rem;
+    }
+
+    .btn-capture i,
+    .btn-secondary i,
+    .btn-reset i {
+        font-size: 0.9rem;
+    }
+
+    /* PLANNING */
+    .weekly-grid {
+        gap: 0.6rem;
+    }
+
+    .weekly-day-card {
+        padding: 0.8rem;
+    }
+
+    .weekly-day-card .day-header {
+        margin-bottom: 0.3rem;
+    }
+
+    .weekly-day-card .day-header h4 {
+        font-size: 0.95rem;
+    }
+
+    .weekly-day-card p {
+        font-size: 0.8rem;
+    }
+
+    /* DAY DETAILS */
+    .day-session {
+        padding: 1.2rem;
+        margin-top: 1rem;
+    }
+
+    .day-session h3 {
+        font-size: 1.2rem;
+    }
+
+    /* PROFIL */
+    .profile-header {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .profile-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .profile-info h1 {
+        font-size: 1.3rem;
+    }
+
+    .profile-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .weekly-schedule-compact {
+        gap: 0.6rem;
+    }
+
+    .profile-day-item {
+        padding: 0.6rem;
+    }
+
+    .profile-day-item .day-icon {
+        font-size: 1.3rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .profile-day-item strong {
+        font-size: 0.9rem;
+    }
+
+    .profile-day-item small {
+        font-size: 0.75rem;
+    }
+
+    /* SÉANCES */
+    .seance-block {
+        margin-bottom: 0.6rem;
+    }
+
+    .seance-header {
+        padding: 0.7rem 1rem;
+    }
+
+    .seance-name {
+        font-size: 0.9rem;
+        gap: 6px;
+    }
+
+    .btn-seance-edit,
+    .btn-seance-delete {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+    }
+
+    .seance-body {
+        padding: 0.8rem 1rem;
+    }
+
+    .seance-muscle-group {
+        margin-bottom: 0.6rem;
+    }
+
+    .seance-muscle-group strong {
+        font-size: 0.8rem;
+    }
+
+    .exercise-item {
+        gap: 0.8rem;
+    }
+
+    .exercise-item img {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* INPUTS */
+    input[type="text"],
+    input[type="password"],
+    #session-name-input {
+        font-size: 16px;
+        padding: 8px 12px;
+        margin: 6px 0;
+    }
+
+    .session-name-field label {
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+
+    .login-form {
+        padding: 12px;
+    }
+
+    .login-buttons {
+        gap: 6px;
+    }
+
+    input[type="button"] {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* COMPTEUR */
+    .days-badge {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    #counter-text {
+        margin-left: 4px;
+    }
+
+    /* ACCESS DENIED */
+    .access-denied {
+        padding: 2rem 1rem;
     }
 }
 
