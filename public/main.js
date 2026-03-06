@@ -262,11 +262,13 @@ function afficherExercices() {
             { name: "Développé couché", image: "img/developpe-couche.gif" },
             { name: "Écarté incliné", image: "img/dev-incliné.gif" },
             { name: "Développé incliné haltères", image: "img/developpe-incline-halteres-exercice-musculation.gif" },
-            { name: "Écarté poulie", image: "img/ecarte-poulie.gif" },
+            { name: "Écarté poulie basse", image: "img/ecarte-poulie.gif" },
+            { name: "Écarté poulie haute", image: "img/ecarte-poulie-vis-a-vis-exercice-musculation.gif" },
             { name: "Pompes inclinées", image: "img/pompes-incline.gif" },
             { name: "Pompes déclinées", image: "img/pompe-declinee.gif" },
             { name: "hex press smith", image: "img/hex-press-a-la-smith-machine.gif" },
-            { name: "developpé incliné marchine convergente", image: "img/developpe-incline-machine-convergente-exercice-musculation.gif" }
+            { name: "chess press assis", image: "img/developpe-incline-machine-convergente-exercice-musculation.gif" },
+
         ],
         "Dos": [
             { name: "Traction", image: "img/traction-musculation-dos.gif" },
