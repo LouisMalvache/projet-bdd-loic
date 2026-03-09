@@ -475,7 +475,16 @@ function afficherProfil() {
     document.getElementById('pas-connecte-message').style.display = 'none';
     document.getElementById('profile-content').style.display = 'block';
     document.getElementById('profil-nom').textContent = userLogin;
-    document.getElementById('profil-membre').textContent = new Date().toLocaleDateString('fr-FR');
+
+    fetch('/user/' + userId)
+        .then(r => r.json())
+        .then(data => {
+            if (data.dateInscription) {
+                let date = new Date(data.dateInscription);
+                document.getElementById('profil-membre').textContent = date.toLocaleDateString('fr-FR');
+            }
+        });
+
     chargerPlanningProfil();
 }
 

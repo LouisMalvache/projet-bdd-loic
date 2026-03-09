@@ -184,6 +184,15 @@ app.delete('/delete-session/:sessionId', (req, res) => {
         res.json({ message: 'Séance supprimée !' });
     });
 });
+
+app.get('/user/:id', (req, res) => {
+    const { id } = req.params;
+    connection.query('SELECT dateInscription FROM user WHERE id = ?', [id], (err, results) => {
+        if (err || results.length === 0) return res.json({ error: 'Introuvable' });
+        res.json(results[0]);
+    });
+});
+
 // Démarre le serveur sur le port 3000
 app.listen(3000, () => {
     console.log('Server is running at http://localhost:3000');
