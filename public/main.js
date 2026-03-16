@@ -265,9 +265,9 @@ function afficherExercices() {
             { name: "Écarté poulie basse", image: "img/ecarte-poulie.gif" },
             { name: "Écarté poulie haute", image: "img/ecarte-poulie-vis-a-vis-exercice-musculation.gif" },
             { name: "Pompes inclinées", image: "img/pompes-incline.gif" },
-            { name: "Pompes déclinées", image: "img/pompe-declinee.gif" },
             { name: "hex press smith", image: "img/hex-press-a-la-smith-machine.gif" },
             { name: "chess press assis", image: "img/developpe-incline-machine-convergente-exercice-musculation.gif" },
+            { name: "butterfly", image: "img/pec-deck-butterfly-exercice-musculation.gif" }
 
         ],
         "Dos": [
