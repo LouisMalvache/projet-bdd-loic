@@ -128,7 +128,7 @@ function chargerPlanning() {
 
 function afficherJour(jour) {
     let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
-    document.getElementById('selected-day-title').innerHTML = '<i class="fas fa-calendar-day"></i> ' + titre;
+    document.getElementById('selected-day-title').innerText = '<i class="fas fa-calendar-day"></i> ' + titre;
     afficherSeances(jour);
     document.getElementById('day-details').style.display = 'block';
     document.getElementById('btn-modify-session').style.display = 'none';
@@ -145,7 +145,7 @@ function afficherSeances(jour) {
     if (!seances || seances.length === 0) {
         html += '<div style="text-align:center;padding:1rem;color:var(--text-muted);">' +
             '<i class="fas fa-calendar-times" style="font-size:2rem;"></i><p>Aucune séance ce jour</p></div>';
-        zone.innerHTML = html; return;
+        zone.innerText = html; return;
     }
 
     for (let i = 0; i < seances.length; i++) {
@@ -174,7 +174,7 @@ function afficherSeances(jour) {
         }
         html += '</div></div>';
     }
-    zone.innerHTML = html;
+    zone.innerText = html;
 }
 
 function nouvelleSeance(jour) {
@@ -227,7 +227,7 @@ function afficherSemaine() {
         } else { html += '<p>Repos</p>'; }
         html += '</div>';
     }
-    zone.innerHTML = html;
+    zone.innerText = html;
 }
 
 // ==========================================
@@ -334,12 +334,12 @@ function afficherExercices() {
     }
 
     function dessiner() {
-        conteneur.innerHTML = "";
+        conteneur.innerText = "";
         let muscles = Object.keys(exercices);
         for (let i = 0; i < muscles.length; i++) {
             let muscle = muscles[i];
             let section = document.createElement("section");
-            section.innerHTML = "<h3>" + muscle + "</h3>";
+            section.innerText = "<h3>" + muscle + "</h3>";
             let grille = document.createElement("div");
             grille.className = "d-flex flex-wrap justify-content-center";
             for (let j = 0; j < exercices[muscle].length; j++) {
@@ -348,7 +348,7 @@ function afficherExercices() {
                 let carte = document.createElement("div");
                 carte.className = "card m-2 p-2 exercise-card" + (selectionne ? " border border-warning" : "");
                 carte.style.width = "180px"; carte.style.cursor = "pointer";
-                carte.innerHTML = '<img src="' + ex.image + '" class="card-img-top"><div class="card-body text-center"><p>' + ex.name + '</p></div>';
+                carte.innerText = '<img src="' + ex.image + '" class="card-img-top"><div class="card-body text-center"><p>' + ex.name + '</p></div>';
                 carte.addEventListener("click", function() {
                     let idx = mesExercices.findIndex(e => e.name === ex.name);
                     if (idx >= 0) mesExercices.splice(idx, 1);
@@ -519,6 +519,6 @@ function chargerPlanningProfil() {
             html += nb > 0 ? '<small>' + nb + ' séance' + (nb > 1 ? 's' : '') + '</small>' : '<small>Repos</small>';
             html += '</div>';
         }
-        conteneur.innerHTML = html;
+        conteneur.innerText = html;
     });
 }
