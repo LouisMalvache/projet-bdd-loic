@@ -47,16 +47,7 @@ app.get('/', (req, res) => {
 
 // ===================== ROUTES UTILISATEUR =====================
 
-// Récupère tous les utilisateurs de la base
-app.get('/user', (req, res) => {
-    connection.query('SELECT * FROM user', (err, results) => {
-        if (err) { 
-            res.status(500).json({ message: 'Erreur serveur' }); 
-            return; 
-        }
-        res.json(results);
-    });
-});
+
 
 // Inscription d'un nouvel utilisateur
 app.post('/register', async (req, res) => {
