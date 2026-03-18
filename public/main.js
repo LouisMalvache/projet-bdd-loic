@@ -7,6 +7,7 @@ let planning = {};
 let jourChoisi = null;
 let pageActuelle = 'accueil';
 let sessionEnEdition = null;
+let userLoginActuel = null; // remplace localStorage.getItem('userLogin')
 
 // ==========================================
 // NAVIGATION
@@ -49,9 +50,8 @@ document.getElementById('loginButton').addEventListener('click', function() {
         .then(r => r.json()).then(data => {
             if (data.success !== false) {
                 alert(data.message);
-                localStorage.setItem('userId', data.user.id);
-                localStorage.setItem('userLogin', login);
-                afficherUser(login);
+                userLoginActuel = data.login; // stocké en mémoire uniquement
+                afficherUser(data.login);
                 document.getElementById('loginSection').style.display = 'none';
                 champLogin.value = ''; champPassword.value = '';
             } else { alert(data.message); }
@@ -59,8 +59,11 @@ document.getElementById('loginButton').addEventListener('click', function() {
 });
 
 function deconnecter() {
-    localStorage.removeItem('userId'); localStorage.removeItem('userLogin');
-    afficherUser(null); window.location.reload();
+    fetch('/logout', { method: 'POST' }).then(() => {
+        userLoginActuel = null;
+        afficherUser(null);
+        window.location.reload();
+    });
 }
 
 function afficherUser(login) {
@@ -84,9 +87,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (!menu.contains(e.target) && !bouton.contains(e.target)) menu.style.display = 'none';
     });
-    let userId = localStorage.getItem('userId');
-    let userLogin = localStorage.getItem('userLogin');
-    if (userId && userLogin) afficherUser(userLogin);
+
+    // Vérifie si une session existe déjà côté serveur (ex: après refresh)
+    fetch('/me').then(r => r.json()).then(data => {
+        if (data.connected) {
+            userLoginActuel = data.login;
+            afficherUser(data.login);
+        }
+    });
+
     changerPage('accueil');
 });
 
@@ -95,25 +104,26 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==========================================
 
 function chargerPlanning() {
-    let userId = localStorage.getItem('userId');
-    if (!userId) { afficherSemaine(); return; }
+    fetch('/me').then(r => r.json()).then(data => {
+        if (!data.connected) { afficherSemaine(); return; }
 
-    fetch('/weekly-plan/' + userId)
-        .then(r => r.json())
-        .then(data => { planning = data; afficherSemaine(); });
+        fetch('/weekly-plan')
+            .then(r => r.json())
+            .then(d => { planning = d; afficherSemaine(); });
 
-    let overview = document.getElementById('weekly-overview');
-    let newOverview = overview.cloneNode(true);
-    overview.parentNode.replaceChild(newOverview, overview);
-    newOverview.addEventListener('click', function(e) {
-        let carte = e.target.closest('.weekly-day-card');
-        if (carte) { jourChoisi = carte.dataset.day; afficherJour(jourChoisi); }
+        let overview = document.getElementById('weekly-overview');
+        let newOverview = overview.cloneNode(true);
+        overview.parentNode.replaceChild(newOverview, overview);
+        newOverview.addEventListener('click', function(e) {
+            let carte = e.target.closest('.weekly-day-card');
+            if (carte) { jourChoisi = carte.dataset.day; afficherJour(jourChoisi); }
+        });
+
+        document.getElementById('btn-modify-session').onclick = function() { changerPage('programme'); };
+        document.getElementById('btn-close-day').onclick = function() {
+            document.getElementById('day-details').style.display = 'none';
+        };
     });
-
-    document.getElementById('btn-modify-session').onclick = function() { changerPage('programme'); };
-    document.getElementById('btn-close-day').onclick = function() {
-        document.getElementById('day-details').style.display = 'none';
-    };
 }
 
 function afficherJour(jour) {
@@ -268,7 +278,6 @@ function afficherExercices() {
             { name: "hex press smith", image: "img/hex-press-a-la-smith-machine.gif" },
             { name: "chess press assis", image: "img/developpe-incline-machine-convergente-exercice-musculation.gif" },
             { name: "butterfly", image: "img/pec-deck-butterfly-exercice-musculation.gif" }
-
         ],
         "Dos": [
             { name: "Traction", image: "img/traction-musculation-dos.gif" },
@@ -299,7 +308,6 @@ function afficherExercices() {
             { name: "hack squat", image:'img/hack-squat.gif'},
             { name: "leg curl assis", image:'img/leg-curl-assis-machine.gif'},
             { name: "extension mollets a la presse", image:'img/extension-mollets-presse-45.gif'},
-            
         ]
     };
 
@@ -370,25 +378,24 @@ function afficherExercices() {
         if (el) { let clone = el.cloneNode(true); el.parentNode.replaceChild(clone, el); }
     });
 
-document.getElementById("btn-validate").addEventListener("click", function() {
-    if (mesExercices.length === 0) return;
-    document.getElementById("exercise-selection").style.display = "none";
-    document.getElementById("save-program").style.display = "block";
+    document.getElementById("btn-validate").addEventListener("click", function() {
+        if (mesExercices.length === 0) return;
+        document.getElementById("exercise-selection").style.display = "none";
+        document.getElementById("save-program").style.display = "block";
 
-    let daySelector = document.querySelector(".day-selector");
-    if (sessionEnEdition) {
-        if (daySelector) daySelector.style.display = "none";
-        document.getElementById("btn-save-program").disabled = false;
-    } else {
-        if (daySelector) daySelector.style.display = "block";
-        // Remettre le jour actif si jourChoisi existe
-        if (jourChoisi) {
-            document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
-            let btn = document.querySelector('.day-btn[data-day="' + jourChoisi + '"]');
-            if (btn) { btn.classList.add('active'); document.getElementById("btn-save-program").disabled = false; }
+        let daySelector = document.querySelector(".day-selector");
+        if (sessionEnEdition) {
+            if (daySelector) daySelector.style.display = "none";
+            document.getElementById("btn-save-program").disabled = false;
+        } else {
+            if (daySelector) daySelector.style.display = "block";
+            if (jourChoisi) {
+                document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+                let btn = document.querySelector('.day-btn[data-day="' + jourChoisi + '"]');
+                if (btn) { btn.classList.add('active'); document.getElementById("btn-save-program").disabled = false; }
+            }
         }
-    }
-});
+    });
 
     document.getElementById("btn-reset").addEventListener("click", function() {
         if (confirm("Tout supprimer ?")) { mesExercices = []; rafraichir(); }
@@ -406,8 +413,6 @@ document.getElementById("btn-validate").addEventListener("click", function() {
 
     document.getElementById("btn-save-program").addEventListener("click", function() {
         if (!jourSave || mesExercices.length === 0) return;
-        let userId = localStorage.getItem('userId');
-        if (!userId) { alert('Connecte-toi !'); return; }
         let nomSeance = document.getElementById('session-name-input').value.trim();
         if (!nomSeance) { alert('Donne un nom à ta séance !'); return; }
 
@@ -416,27 +421,35 @@ document.getElementById("btn-validate").addEventListener("click", function() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sessionName: nomSeance, exercises: mesExercices })
-            }).then(r => r.json()).then(() => {
-                if (planning[jourSave]) {
-                    planning[jourSave].forEach(s => {
-                        if (s.id === sessionEnEdition) { s.sessionName = nomSeance; s.exercises = mesExercices; }
-                    });
+            }).then(r => r.json()).then(data => {
+                if (data.message === 'Séance mise à jour !') {
+                    if (planning[jourSave]) {
+                        planning[jourSave].forEach(s => {
+                            if (s.id === sessionEnEdition) { s.sessionName = nomSeance; s.exercises = mesExercices; }
+                        });
+                    }
+                    reinitialiserFormulaire();
+                    changerPage('planning');
+                    setTimeout(() => { jourChoisi = jourSave; afficherJour(jourChoisi); }, 100);
+                } else {
+                    alert('Erreur : ' + (data.message || 'inconnue'));
                 }
-                reinitialiserFormulaire();
-                changerPage('planning');
-                setTimeout(() => { jourChoisi = jourSave; afficherJour(jourChoisi); }, 100);
             });
         } else {
             fetch('/save-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, day: jourSave, sessionName: nomSeance, exercises: mesExercices })
+                body: JSON.stringify({ day: jourSave, sessionName: nomSeance, exercises: mesExercices })
             }).then(r => r.json()).then(data => {
-                if (!planning[jourSave]) planning[jourSave] = [];
-                planning[jourSave].push({ id: data.sessionId, sessionName: nomSeance, exercises: mesExercices });
-                reinitialiserFormulaire();
-                changerPage('planning');
-                setTimeout(() => { jourChoisi = jourSave; afficherJour(jourChoisi); }, 100);
+                if (data.sessionId) {
+                    if (!planning[jourSave]) planning[jourSave] = [];
+                    planning[jourSave].push({ id: data.sessionId, sessionName: nomSeance, exercises: mesExercices });
+                    reinitialiserFormulaire();
+                    changerPage('planning');
+                    setTimeout(() => { jourChoisi = jourSave; afficherJour(jourChoisi); }, 100);
+                } else {
+                    alert(data.message || 'Connecte-toi !');
+                }
             });
         }
     });
@@ -465,34 +478,33 @@ function reinitialiserFormulaire() {
 // ==========================================
 
 function afficherProfil() {
-    let userId = localStorage.getItem('userId');
-    let userLogin = localStorage.getItem('userLogin');
-    if (!userId || !userLogin) {
-        document.getElementById('pas-connecte-message').style.display = 'block';
-        document.getElementById('profile-content').style.display = 'none';
-        return;
-    }
-    document.getElementById('pas-connecte-message').style.display = 'none';
-    document.getElementById('profile-content').style.display = 'block';
-    document.getElementById('profil-nom').textContent = userLogin;
+    fetch('/me').then(r => r.json()).then(data => {
+        if (!data.connected) {
+            document.getElementById('pas-connecte-message').style.display = 'block';
+            document.getElementById('profile-content').style.display = 'none';
+            return;
+        }
+        document.getElementById('pas-connecte-message').style.display = 'none';
+        document.getElementById('profile-content').style.display = 'block';
+        document.getElementById('profil-nom').textContent = data.login;
 
-    fetch('/user/' + userId)
-        .then(r => r.json())
-        .then(data => {
-            if (data.dateInscription) {
-                let date = new Date(data.dateInscription);
-                document.getElementById('profil-membre').textContent = date.toLocaleDateString('fr-FR');
-            }
-        });
+        fetch('/me/profile')
+            .then(r => r.json())
+            .then(profil => {
+                if (profil.dateInscription) {
+                    let date = new Date(profil.dateInscription);
+                    document.getElementById('profil-membre').textContent = date.toLocaleDateString('fr-FR');
+                }
+            });
 
-    chargerPlanningProfil();
+        chargerPlanningProfil();
+    });
 }
 
 function chargerPlanningProfil() {
-    let userId = localStorage.getItem('userId');
     let conteneur = document.getElementById('profile-weekly-schedule');
-    if (!userId || !conteneur) return;
-    fetch('/weekly-plan/' + userId).then(r => r.json()).then(data => {
+    if (!conteneur) return;
+    fetch('/weekly-plan').then(r => r.json()).then(data => {
         let jours = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
         let icones = { lundi:'fa-moon', mardi:'fa-fire', mercredi:'fa-star', jeudi:'fa-bolt', vendredi:'fa-rocket', samedi:'fa-sun', dimanche:'fa-bed' };
         let html = '';
