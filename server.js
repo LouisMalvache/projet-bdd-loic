@@ -4,13 +4,15 @@ const mysql = require('mysql2');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
+const dotenv = require('dotenv');
+require('dotenv').config();
 
 // Connexion à la base de données MySQL
 const connection = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'assesNodeServerDemo',
-    password: 'assesNodeServerDemo',
-    database: 'projet_seances_loic',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD ,
+    database: process.env.DB_NAME,
 });
 
 // Vérifie si la connexion à la BDD fonctionne
@@ -32,7 +34,7 @@ app.use(express.json());
 
 // Session côté serveur — l'userId n'est plus jamais envoyé au client
 app.use(session({
-    secret: 'fitapp_secret_solide_2024',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: { httpOnly: true } // invisible dans l'inspecteur
