@@ -181,6 +181,15 @@ app.get('/me/profile', (req, res) => {
     });
 });
 
+// Gestionnaire d'erreurs global
+app.use((err, req, res, next) => {
+    if (err.type === 'request.aborted' || err.status === 400) {
+        return res.status(400).json({ message: 'Requête invalide', success: false });
+    }
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur' });
+});
+
 // Démarre le serveur
 app.listen(3000, () => {
     console.log('Server is running at http://localhost:3000');
