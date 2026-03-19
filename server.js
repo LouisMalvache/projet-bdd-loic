@@ -11,70 +11,49 @@ require('dotenv').config();
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD ,
+    password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
 });
 
-// Vérifie si la connexion à la BDD fonctionne
 connection.connect((err) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données : ', err);
-        return;
-    }
+    if (err) { console.error('Erreur de connexion à la base de données : ', err); return; }
     console.log('Connecté à la base de données MySQL.');
 });
 
 const app = express();
 
-// Permet d'utiliser les fichiers statiques dans le dossier public
 app.use(express.static('public'));
-
-// Permet de lire les données JSON envoyées par le front
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: true }));
-// Session côté serveur — l'userId n'est plus jamais envoyé au client
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true } // invisible dans l'inspecteur
+    cookie: { httpOnly: true }
 }));
 
-// Route principale vers l'index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ===================== ROUTES UTILISATEUR =====================
 
-
-
 // Inscription d'un nouvel utilisateur
 app.post('/register', async (req, res) => {
+    if (!req.body || !req.body.login || !req.body.password) {
+        return res.status(400).json({ message: 'Données manquantes', success: false });
+    }
     try {
         connection.query('SELECT id FROM user WHERE login = ?', [req.body.login], async (err, results) => {
-            if (err) { 
-                res.status(500).json({ message: 'Erreur serveur' }); 
-                return; 
-            }
-            if (results.length > 0) { 
-                res.status(409).json({ message: 'Ce login est déjà utilisé', success: false }); 
-                return; 
-            }
+            if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+            if (results.length > 0) { res.status(409).json({ message: 'Ce login est déjà utilisé', success: false }); return; }
             const motDePasseHache = await bcrypt.hash(req.body.password, 10);
             connection.query(
-                'INSERT INTO user (login, password) VALUES (?, ?)', 
-                [req.body.login, motDePasseHache], 
-                (err, results) => {
-                    if (err) { 
-                        res.status(500).json({ message: 'Erreur serveur' }); 
-                        return; 
-                    }
-                    res.json({ 
-                        message: 'Inscription réussie !', 
-                        success: true 
-                    });
+                'INSERT INTO user (login, password) VALUES (?, ?)',
+                [req.body.login, motDePasseHache],
+                (err) => {
+                    if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+                    res.json({ message: 'Inscription réussie !', success: true });
                 }
             );
         });
@@ -83,37 +62,30 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Connexion d'un utilisateur — stocke l'userId dans la session serveur
+// Connexion d'un utilisateur
 app.post('/connexion', async (req, res) => {
+    if (!req.body || !req.body.login || !req.body.password) {
+        return res.status(400).json({ message: 'Données manquantes', success: false });
+    }
     const { login, password } = req.body;
     connection.query('SELECT * FROM user WHERE login = ?', [login], async (err, results) => {
-        if (err) { 
-            res.status(500).json({ message: 'Erreur serveur' }); 
-            return; 
-        }
-        if (results.length === 0) { 
-            res.status(401).json({ message: 'Identifiants invalides', success: false }); 
-            return; 
-        }
+        if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+        if (results.length === 0) { res.status(401).json({ message: 'Identifiants invalides', success: false }); return; }
         const match = await bcrypt.compare(password, results[0].password);
-        if (!match) { 
-            res.status(401).json({ message: 'Identifiants invalides', success: false }); 
-            return; 
-        }
-        // Stocke l'userId côté serveur, invisible côté client
+        if (!match) { res.status(401).json({ message: 'Identifiants invalides', success: false }); return; }
         req.session.userId = results[0].id;
         req.session.userLogin = results[0].login;
         res.json({ message: 'Connexion réussie !', login: results[0].login });
     });
 });
 
-// Déconnexion — détruit la session
+// Déconnexion
 app.post('/logout', (req, res) => {
     req.session.destroy();
     res.json({ success: true });
 });
 
-// Renvoie les infos de session au client (sans l'id)
+// Renvoie les infos de session
 app.get('/me', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ connected: false });
     res.json({ connected: true, login: req.session.userLogin });
@@ -124,37 +96,29 @@ app.get('/me', (req, res) => {
 // Enregistre une nouvelle séance
 app.post('/save-session', (req, res) => {
     const userId = req.session.userId;
-    if (!userId) { 
-        res.status(401).json({ message: 'Utilisateur non connecté' }); 
-        return; 
+    if (!userId) { res.status(401).json({ message: 'Utilisateur non connecté' }); return; }
+    if (!req.body || !req.body.day || !req.body.exercises || !req.body.sessionName) {
+        return res.status(400).json({ message: 'Données incomplètes' });
     }
     const { day, sessionName, exercises } = req.body;
-    if (!day || !exercises || !sessionName) { 
-        res.status(400).json({ message: 'Données incomplètes' }); 
-        return; 
-    }
     const exercisesJson = JSON.stringify(exercises);
     const savedDate = new Date();
     connection.query(
         'INSERT INTO seances (userId, day, sessionName, exercises, savedDate) VALUES (?, ?, ?, ?, ?)',
         [userId, day, sessionName, exercisesJson, savedDate],
         (err, results) => {
-            if (err) { 
-                console.error(err); 
-                res.status(500).json({ message: 'Erreur serveur' }); 
-                return; 
-            }
+            if (err) { console.error(err); res.status(500).json({ message: 'Erreur serveur' }); return; }
             res.json({ message: 'Séance enregistrée !', sessionId: results.insertId });
         }
     );
 });
 
-// Permet de mettre à jour une séance — vérifie que la séance appartient bien à l'utilisateur connecté
+// Met à jour une séance
 app.put('/update-session/:sessionId', (req, res) => {
     const userId = req.session.userId;
-    if (!userId) { 
-        res.status(401).json({ message: 'Utilisateur non connecté' }); 
-        return; 
+    if (!userId) { res.status(401).json({ message: 'Utilisateur non connecté' }); return; }
+    if (!req.body || !req.body.sessionName || !req.body.exercises) {
+        return res.status(400).json({ message: 'Données incomplètes' });
     }
     const { sessionId } = req.params;
     const { sessionName, exercises } = req.body;
@@ -162,10 +126,7 @@ app.put('/update-session/:sessionId', (req, res) => {
         'UPDATE seances SET sessionName = ?, exercises = ? WHERE id = ? AND userId = ?',
         [sessionName, JSON.stringify(exercises), sessionId, userId],
         (err) => {
-            if (err) { 
-                res.status(500).json({ message: 'Erreur serveur' }); 
-                return; 
-            }
+            if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
             res.json({ message: 'Séance mise à jour !' });
         }
     );
@@ -174,18 +135,12 @@ app.put('/update-session/:sessionId', (req, res) => {
 // Récupère toutes les séances de l'utilisateur connecté
 app.get('/weekly-plan', (req, res) => {
     const userId = req.session.userId;
-    if (!userId) { 
-        res.status(401).json({ message: 'Utilisateur non connecté' }); 
-        return; 
-    }
+    if (!userId) { res.status(401).json({ message: 'Utilisateur non connecté' }); return; }
     connection.query(
         'SELECT * FROM seances WHERE userId = ? ORDER BY day, savedDate ASC',
         [userId],
         (err, results) => {
-            if (err) { 
-                res.status(500).json({ message: 'Erreur serveur' }); 
-                return; 
-            }
+            if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
             const semaine = {};
             results.forEach(row => {
                 if (!semaine[row.day]) semaine[row.day] = [];
@@ -201,31 +156,22 @@ app.get('/weekly-plan', (req, res) => {
     );
 });
 
-// Supprime une séance — vérifie que la séance appartient bien à l'utilisateur connecté
+// Supprime une séance
 app.delete('/delete-session/:sessionId', (req, res) => {
     const userId = req.session.userId;
-    if (!userId) { 
-        res.status(401).json({ message: 'Utilisateur non connecté' }); 
-        return; 
-    }
+    if (!userId) { res.status(401).json({ message: 'Utilisateur non connecté' }); return; }
     connection.query(
-        'DELETE FROM seances WHERE id = ? AND userId = ?', 
-        [req.params.sessionId, userId], 
+        'DELETE FROM seances WHERE id = ? AND userId = ?',
+        [req.params.sessionId, userId],
         (err, results) => {
-            if (err) { 
-                res.status(500).json({ message: 'Erreur serveur' }); 
-                return; 
-            }
-            if (results.affectedRows === 0) { 
-                res.status(404).json({ message: 'Séance introuvable' }); 
-                return; 
-            }
+            if (err) { res.status(500).json({ message: 'Erreur serveur' }); return; }
+            if (results.affectedRows === 0) { res.status(404).json({ message: 'Séance introuvable' }); return; }
             res.json({ message: 'Séance supprimée !' });
         }
     );
 });
 
-// Récupère la date d'inscription de l'utilisateur connecté
+// Récupère la date d'inscription
 app.get('/me/profile', (req, res) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ error: 'Non connecté' });
@@ -235,7 +181,7 @@ app.get('/me/profile', (req, res) => {
     });
 });
 
-// Démarre le serveur sur le port 3000
+// Démarre le serveur
 app.listen(3000, () => {
     console.log('Server is running at http://localhost:3000');
 });
