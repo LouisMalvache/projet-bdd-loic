@@ -7,7 +7,17 @@ let planning = {};
 let jourChoisi = null;
 let pageActuelle = 'accueil';
 let sessionEnEdition = null;
-let userLoginActuel = null; // remplace localStorage.getItem('userLogin')
+let userLoginActuel = null;
+
+// ==========================================
+// FONCTION SÉCURITÉ ANTI-XSS
+// ==========================================
+
+function escape(str) {
+    let div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
 
 // ==========================================
 // NAVIGATION
@@ -50,7 +60,7 @@ document.getElementById('loginButton').addEventListener('click', function() {
         .then(r => r.json()).then(data => {
             if (data.success !== false) {
                 alert(data.message);
-                userLoginActuel = data.login; // stocké en mémoire uniquement
+                userLoginActuel = data.login;
                 afficherUser(data.login);
                 document.getElementById('loginSection').style.display = 'none';
                 champLogin.value = ''; champPassword.value = '';
@@ -88,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!menu.contains(e.target) && !bouton.contains(e.target)) menu.style.display = 'none';
     });
 
-    // Vérifie si une session existe déjà côté serveur (ex: après refresh)
     fetch('/me').then(r => r.json()).then(data => {
         if (data.connected) {
             userLoginActuel = data.login;
@@ -128,7 +137,8 @@ function chargerPlanning() {
 
 function afficherJour(jour) {
     let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
-    document.getElementById('selected-day-title').innerText = '<i class="fas fa-calendar-day"></i> ' + titre;
+    // titre vient des jours codés en dur, pas de l'utilisateur → innerHTML ok pour l'icône
+    document.getElementById('selected-day-title').innerHTML = '<i class="fas fa-calendar-day"></i> ' + escape(titre);
     afficherSeances(jour);
     document.getElementById('day-details').style.display = 'block';
     document.getElementById('btn-modify-session').style.display = 'none';
@@ -139,13 +149,13 @@ function afficherSeances(jour) {
     let seances = planning[jour];
 
     let html = '<div style="text-align:center;margin-bottom:1.5rem;">' +
-        '<button onclick="nouvelleSeance(\'' + jour + '\')" class="btn-capture">' +
+        '<button onclick="nouvelleSeance(\'' + escape(jour) + '\')" class="btn-capture">' +
         '<i class="fas fa-plus"></i> Ajouter une séance</button></div>';
 
     if (!seances || seances.length === 0) {
         html += '<div style="text-align:center;padding:1rem;color:var(--text-muted);">' +
             '<i class="fas fa-calendar-times" style="font-size:2rem;"></i><p>Aucune séance ce jour</p></div>';
-        zone.innerText = html; return;
+        zone.innerHTML = html; return;
     }
 
     for (let i = 0; i < seances.length; i++) {
@@ -158,23 +168,23 @@ function afficherSeances(jour) {
         }
         html += '<div class="seance-block">' +
             '<div class="seance-header">' +
-            '<span class="seance-name"><i class="fas fa-dumbbell"></i> ' + s.sessionName + '</span>' +
+            '<span class="seance-name"><i class="fas fa-dumbbell"></i> ' + escape(s.sessionName) + '</span>' +
             '<div class="seance-actions">' +
-            '<button onclick="modifierSeance(' + s.id + ',\'' + jour + '\')" class="btn-seance-edit"><i class="fas fa-edit"></i></button>' +
-            '<button onclick="supprimerSeance(' + s.id + ',\'' + jour + '\')" class="btn-seance-delete"><i class="fas fa-trash"></i></button>' +
+            '<button onclick="modifierSeance(' + s.id + ',\'' + escape(jour) + '\')" class="btn-seance-edit"><i class="fas fa-edit"></i></button>' +
+            '<button onclick="supprimerSeance(' + s.id + ',\'' + escape(jour) + '\')" class="btn-seance-delete"><i class="fas fa-trash"></i></button>' +
             '</div></div><div class="seance-body">';
         let muscles = Object.keys(parMuscle);
         for (let m = 0; m < muscles.length; m++) {
-            html += '<div class="seance-muscle-group"><strong>' + muscles[m] + '</strong>';
+            html += '<div class="seance-muscle-group"><strong>' + escape(muscles[m]) + '</strong>';
             for (let k = 0; k < parMuscle[muscles[m]].length; k++) {
                 let ex = parMuscle[muscles[m]][k];
-                html += '<div class="exercise-item"><img src="' + ex.image + '" width="50"><span>' + ex.name + '</span></div>';
+                html += '<div class="exercise-item"><img src="' + escape(ex.image) + '" width="50"><span>' + escape(ex.name) + '</span></div>';
             }
             html += '</div>';
         }
         html += '</div></div>';
     }
-    zone.innerText = html;
+    zone.innerHTML = html;
 }
 
 function nouvelleSeance(jour) {
@@ -220,14 +230,14 @@ function afficherSemaine() {
         let nb = seances ? seances.length : 0;
         let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
         html += '<div class="weekly-day-card ' + (nb === 0 ? 'rest-day' : '') + '" data-day="' + jour + '">' +
-            '<div class="day-header"><i class="fas ' + icones[jour] + '"></i><h4>' + titre + '</h4></div>';
+            '<div class="day-header"><i class="fas ' + icones[jour] + '"></i><h4>' + escape(titre) + '</h4></div>';
         if (nb > 0) {
-            let noms = seances.map(s => s.sessionName).join(', ');
+            let noms = seances.map(s => escape(s.sessionName)).join(', ');
             html += '<p>' + nb + ' séance' + (nb > 1 ? 's' : '') + '</p><div class="muscle-groups">' + noms + '</div>';
         } else { html += '<p>Repos</p>'; }
         html += '</div>';
     }
-    zone.innerText = html;
+    zone.innerHTML = html;
 }
 
 // ==========================================
@@ -252,7 +262,7 @@ function afficherExercices() {
             { name: "Curl marteau", image: "img/curl-marteau.gif" },
             { name: "Curl haltères incliné", image: "img/curl-haltere-incline.gif" },
             { name: "Curl concentration", image: "img/curl-concentre.gif" },
-            { name: " curl alterné sur banc incliné", image: "img/curl-biceps-alterne-sur-banc-incline.gif" },
+            { name: "curl alterné sur banc incliné", image: "img/curl-biceps-alterne-sur-banc-incline.gif" },
             { name: "curl à la poulie", image: "img/curl-biceps-poulie-basse.gif" }
         ],
         "Triceps": [
@@ -287,7 +297,7 @@ function afficherExercices() {
             { name: "Soulevé de terre", image: "img/souleve-de-terre-avec-deficit.gif" },
             { name: "Extension lombaires", image: "img/extension-lombaires.gif" },
             { name: "pull-over", image: "img/pull-over-poulie.gif" },
-            { name: "rowing halteres", image: "img/rowing-halteres-banc-incline.gif"}
+            { name: "rowing halteres", image: "img/rowing-halteres-banc-incline.gif" }
         ],
         "Abdominaux": [
             { name: "Relevé de genoux suspendu", image: "img/releve-de-genoux-suspendu-exercice-musculation.gif" },
@@ -303,18 +313,17 @@ function afficherExercices() {
             { name: "Leg curl allongé", image: "img/leg-curl-allonge.gif" },
             { name: "Fentes avant", image: "img/fentes-avant-kettlebell.gif" },
             { name: "Squat sauté", image: "img/squat-saute.gif" },
-            { name: "extension-hanche", image:'img/extension-hanche-poulie-basse.gif'},
-            { name: "hip thrust", image:'img/hip-thrust-a-la-machine.gif' },
-            { name: "hack squat", image:'img/hack-squat.gif'},
-            { name: "leg curl assis", image:'img/leg-curl-assis-machine.gif'},
-            { name: "extension mollets a la presse", image:'img/extension-mollets-presse-45.gif'},
+            { name: "extension-hanche", image: "img/extension-hanche-poulie-basse.gif" },
+            { name: "hip thrust", image: "img/hip-thrust-a-la-machine.gif" },
+            { name: "hack squat", image: "img/hack-squat.gif" },
+            { name: "leg curl assis", image: "img/leg-curl-assis-machine.gif" },
+            { name: "extension mollets a la presse", image: "img/extension-mollets-presse-45.gif" }
         ]
     };
 
     let conteneur = document.getElementById("exercises-container");
     let jourSave = jourChoisi;
 
-    // Pré-remplir le nom si édition
     let nomInput = document.getElementById('session-name-input');
     if (sessionEnEdition && jourChoisi && planning[jourChoisi]) {
         let seances = planning[jourChoisi];
@@ -323,7 +332,6 @@ function afficherExercices() {
         }
     } else { nomInput.value = ''; }
 
-    // Pré-sélectionner le jour
     if (jourSave) {
         let btnJour = document.querySelector('.day-btn[data-day="' + jourSave + '"]');
         if (btnJour) {
@@ -334,12 +342,13 @@ function afficherExercices() {
     }
 
     function dessiner() {
-        conteneur.innerText = "";
+        conteneur.innerHTML = "";
         let muscles = Object.keys(exercices);
         for (let i = 0; i < muscles.length; i++) {
             let muscle = muscles[i];
             let section = document.createElement("section");
-            section.innerText = "<h3>" + muscle + "</h3>";
+            // muscle vient du code, pas de l'utilisateur, mais on escape par bonne habitude
+            section.innerHTML = "<h3>" + escape(muscle) + "</h3>";
             let grille = document.createElement("div");
             grille.className = "d-flex flex-wrap justify-content-center";
             for (let j = 0; j < exercices[muscle].length; j++) {
@@ -348,7 +357,8 @@ function afficherExercices() {
                 let carte = document.createElement("div");
                 carte.className = "card m-2 p-2 exercise-card" + (selectionne ? " border border-warning" : "");
                 carte.style.width = "180px"; carte.style.cursor = "pointer";
-                carte.innerText = '<img src="' + ex.image + '" class="card-img-top"><div class="card-body text-center"><p>' + ex.name + '</p></div>';
+                // ex.image et ex.name viennent du code, pas de l'utilisateur
+                carte.innerHTML = '<img src="' + escape(ex.image) + '" class="card-img-top"><div class="card-body text-center"><p>' + escape(ex.name) + '</p></div>';
                 carte.addEventListener("click", function() {
                     let idx = mesExercices.findIndex(e => e.name === ex.name);
                     if (idx >= 0) mesExercices.splice(idx, 1);
@@ -372,7 +382,6 @@ function afficherExercices() {
     }
     rafraichir();
 
-    // Cloner boutons pour éviter doublons de listeners
     ['btn-validate','btn-reset','btn-save-program','btn-back-selection','save-day-buttons'].forEach(id => {
         let el = document.getElementById(id);
         if (el) { let clone = el.cloneNode(true); el.parentNode.replaceChild(clone, el); }
@@ -515,10 +524,10 @@ function chargerPlanningProfil() {
             let titre = jour.charAt(0).toUpperCase() + jour.slice(1);
             html += '<div class="profile-day-item ' + (nb > 0 ? 'has-session' : '') + '">' +
                 '<div class="day-icon"><i class="fas ' + icones[jour] + '"></i></div>' +
-                '<strong>' + titre + '</strong>';
+                '<strong>' + escape(titre) + '</strong>';
             html += nb > 0 ? '<small>' + nb + ' séance' + (nb > 1 ? 's' : '') + '</small>' : '<small>Repos</small>';
             html += '</div>';
         }
-        conteneur.innerText = html;
+        conteneur.innerHTML = html;
     });
 }

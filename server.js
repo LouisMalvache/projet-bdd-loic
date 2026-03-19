@@ -32,6 +32,7 @@ app.use(express.static('public'));
 // Permet de lire les données JSON envoyées par le front
 app.use(express.json());
 
+app.use(express.urlencoded({ extended: true }));
 // Session côté serveur — l'userId n'est plus jamais envoyé au client
 app.use(session({
     secret: process.env.SESSION_SECRET,
